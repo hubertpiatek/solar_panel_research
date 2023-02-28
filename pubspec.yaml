@@ -1,5 +1,5 @@
 name: solar_panel_research
-description: A new Flutter project.
+description: Projekt panelu fotowoltaicznego badający wydajność ogniwa.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
