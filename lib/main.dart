@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:solar_panel_research/controller/home_page_controller.dart';
+import 'package:solar_panel_research/controller/solar_panel_research_controller.dart';
 import 'package:solar_panel_research/view/home_page.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.delayed(Duration(milliseconds: 500));
+  await Future.delayed(const Duration(milliseconds: 500));
   FlutterNativeSplash.remove();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -23,10 +23,10 @@ class SolarPanelApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => HomePageController()),
+        ChangeNotifierProvider(create: (_) => SolarPanelResearchController()),
       ],
       child: MaterialApp(
-          title: 'Solar Panel Research',
+          title: "Badania Panelu Fotowoltaicznego",
           theme: ThemeData(
               primarySwatch: Colors.blue,
               primaryColor: Colors.red,

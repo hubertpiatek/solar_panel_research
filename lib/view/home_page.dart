@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-//import 'package:provider/provider.dart';
-import 'package:solar_panel_research/consumer/solar_consumer.dart';
-import 'package:solar_panel_research/controller/home_page_controller.dart';
+import 'package:solar_panel_research/view/summary_page.dart';
+
+import 'last_solar_data.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,25 +10,88 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  //late HomePageController _homePageController;
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
-    //_homePageController = context.read<HomePageController>();
+    _tabController = TabController(length: 3, vsync: this);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SolarConsumer<HomePageController>(
-      builder: (context, model) {
-        // _homePageController = model;
-        return Scaffold(
-          appBar: AppBar(),
-          body: const Center(child: Text("ok")),
-        );
-      },
+    return Scaffold(
+      // backgroundColor: Colors.indigo.shade500.withOpacity(0.7),
+      //backgroundColor: Colors.blue.shade800.withOpacity(0.7),
+      backgroundColor: Colors.grey.shade800.withOpacity(0.75),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+            color: Colors.black12.withOpacity(0.05),
+            borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16), topRight: Radius.circular(16))),
+        child: TabBar(
+          indicator: const UnderlineTabIndicator(
+            borderSide: BorderSide(width: 3.0, color: Colors.blue),
+          ),
+          controller: _tabController,
+          labelColor: Colors.white,
+          tabs: <Widget>[
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 2),
+              child: const Tab(
+                child: Text(
+                  "Start",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15),
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 2),
+              child: const Tab(
+                child: Text(
+                  "Dane Aktualne",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 2),
+              child: const Tab(
+                child: Text(
+                  "Dane Historyczne",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      appBar: AppBar(
+        backgroundColor: Colors.blue.shade700,
+        //backgroundColor: Colors.grey.shade600,
+        title: const Text("Badania Panelu Fotowoltaicznego"),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          const SummaryPage(),
+          const LastSolarData(),
+          Container(),
+        ],
+      ),
     );
   }
 }
