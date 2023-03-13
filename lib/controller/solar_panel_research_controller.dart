@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:solar_panel_research/service/solar_panel_research_service.dart';
 
+import '../model/solar_data_single_model.dart';
+import '../model/summary_model.dart';
+
 enum ChartFilterTypes {
   power,
   voltage,
@@ -25,10 +28,21 @@ class SolarPanelResearchController extends ChangeNotifier {
   late SolarPanelResearchService _solarPanelResearchService;
   late bool _isSummaryDataLoading;
   late bool _isLastDataLoading;
+  late SummaryModel _summaryModel;
+  late List<SolarDataModel> _solarAllData;
+
   SolarPanelResearchController() {
     _solarPanelResearchService = SolarPanelResearchService();
     _isSummaryDataLoading = false;
     _isLastDataLoading = false;
+    _solarAllData = [];
+    _summaryModel = SummaryModel(
+      averageCurrent: 0.0,
+      averageTemperature: 0.0,
+      averageVoltage: 0.0,
+      generatedPower: 0.0,
+      solarDataModel: [],
+    );
     _actualSelectedFilter = "Moc [ W ]";
   }
 
@@ -39,6 +53,22 @@ class SolarPanelResearchController extends ChangeNotifier {
   set setActualSelectedFilter(String actualSelectedFilter) {
     _actualSelectedFilter = actualSelectedFilter;
     notifyListeners();
+  }
+
+  List<SolarDataModel> get solarAllData {
+    return _solarAllData;
+  }
+
+  set setSolarAllData(List<SolarDataModel> solarAllData) {
+    _solarAllData = solarAllData;
+  }
+
+  SummaryModel get summaryModel {
+    return _summaryModel;
+  }
+
+  set setSummaryModel(SummaryModel summaryModel) {
+    _summaryModel = summaryModel;
   }
 
   bool get isSummaryDataLoading {
@@ -71,7 +101,7 @@ class SolarPanelResearchController extends ChangeNotifier {
 
   Future<void> getSummaryData() async {
     setIsSummaryDataLoading = true;
-    await _solarPanelResearchService.getSummaryData();
+    _summaryModel = await _solarPanelResearchService.getSummaryData();
     setIsSummaryDataLoading = false;
   }
 

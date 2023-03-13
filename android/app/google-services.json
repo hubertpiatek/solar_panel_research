@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "376725753941",
+    "firebase_url": "https://solarpanelresearch-3fcb9-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "solarpanelresearch-3fcb9",
+    "storage_bucket": "solarpanelresearch-3fcb9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:376725753941:android:2f58343594d3ec1ceac4dc",
+        "android_client_info": {
+          "package_name": "com.example.solar_panel_research"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "376725753941-48ch1g21uof5547mkm60c0t85b6v3mtm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOfA3lJiS0o1hRkhzNvkypOiMoq3csDHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "376725753941-48ch1g21uof5547mkm60c0t85b6v3mtm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

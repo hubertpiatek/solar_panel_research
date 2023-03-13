@@ -36,6 +36,9 @@ dependencies:
   provider: ^6.0.5
   flutter_native_splash: ^2.2.18
   fl_chart: ^0.61.0
+  firebase_core: ^2.7.1
+  firebase_database: ^10.0.15
+  intl: ^0.17.0
   
 dev_dependencies:
   flutter_lints: ^2.0.1

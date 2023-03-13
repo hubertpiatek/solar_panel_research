@@ -4,9 +4,14 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:solar_panel_research/controller/solar_panel_research_controller.dart';
 import 'package:solar_panel_research/view/home_page.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await Future.delayed(const Duration(milliseconds: 500));
   FlutterNativeSplash.remove();
   SystemChrome.setPreferredOrientations([

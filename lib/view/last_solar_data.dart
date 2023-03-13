@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:solar_panel_research/consumer/solar_consumer.dart';
 import '../common/error_alert_dialog.dart';
 import '../controller/solar_panel_research_controller.dart';
 import 'package:fl_chart/fl_chart.dart';
+
+import '../model/solar_data_single_model.dart';
 
 class LastSolarData extends StatefulWidget {
   const LastSolarData({super.key});
@@ -34,6 +37,8 @@ class _LastSolarDataState extends State<LastSolarData> {
       listen: true,
       builder: (context, model) {
         _solarPanelResearchController = model;
+        SolarDataModel lastSolarDataModel =
+            _solarPanelResearchController.summaryModel.solarDataModel.last;
         return SingleChildScrollView(
           //physics: const AlwaysScrollableScrollPhysics(),
           child: RefreshIndicator(
@@ -86,12 +91,14 @@ class _LastSolarDataState extends State<LastSolarData> {
                                           ),
                                           ...getLastInfoSingleData(
                                               "Data i godzina: ",
-                                              "06.03.2023 17:35:12",
+                                              DateFormat("dd-MM-yyyy HH:mm")
+                                                  .format(lastSolarDataModel
+                                                      .solarDate),
                                               Icons.date_range,
                                               Colors.blue),
                                           ...getLastInfoSingleData(
                                               "Moc:",
-                                              "35 W",
+                                              "${lastSolarDataModel.power} W",
                                               Icons.solar_power_outlined,
                                               Colors.green),
                                           ...getLastInfoSingleData(
@@ -101,27 +108,27 @@ class _LastSolarDataState extends State<LastSolarData> {
                                               Colors.yellow.shade800),
                                           ...getLastInfoSingleData(
                                               "Natężenie:",
-                                              "2.33 A",
+                                              "${lastSolarDataModel.current} A",
                                               Icons.electric_meter_outlined,
                                               Colors.red),
                                           ...getLastInfoSingleData(
                                               "Temperatura / Wilgotność:",
-                                              "15 °C / 100%",
+                                              "${lastSolarDataModel.temperature} °C / ${lastSolarDataModel.humidity}%",
                                               Icons.sunny_snowing,
                                               Colors.blue),
                                           ...getLastInfoSingleData(
                                               "Intensywność światła:",
-                                              "40000 lux",
+                                              "${lastSolarDataModel.lightIntensity} lux",
                                               Icons.lightbulb_outline,
                                               Colors.yellow.shade700),
                                           ...getLastInfoSingleData(
                                               "Kierunek:",
-                                              "Południowy-Zachód",
+                                              lastSolarDataModel.direction,
                                               Icons.north_east,
                                               Colors.blue),
                                           ...getLastInfoSingleData(
                                               "Kąt panelu:",
-                                              "35°",
+                                              "${lastSolarDataModel.solarAngle}°",
                                               Icons.perm_data_setting_outlined,
                                               Colors.blue),
                                         ],
@@ -282,7 +289,7 @@ class _LastSolarDataState extends State<LastSolarData> {
             color: color,
           ),
           const SizedBox(
-            width: 10,
+            width: 4,
           ),
           Text(
             "$title $content",
