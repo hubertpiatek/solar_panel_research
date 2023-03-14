@@ -30,7 +30,7 @@ class SummaryModel {
           DateTime formattedDateHour =
               DateFormat("dd-MM-yyyy hh:mm:ss").parse("01-01-1990 $hour");
           //Tylko Dane Pomiędzy 6 i 21
-          if (formattedDateHour.hour >= 6 && formattedDateHour.hour <= 20) {
+          if (formattedDateHour.hour >= 6 && formattedDateHour.hour <= 21) {
             formattedDate = formattedDate.add(Duration(
                 hours: formattedDateHour.hour,
                 minutes: formattedDateHour.minute,
@@ -40,7 +40,7 @@ class SummaryModel {
           }
         });
       } catch (error) {
-        print(error);
+        rethrow;
       }
     });
     solarDataModel.sort((a, b) => a.solarDate.compareTo(b.solarDate));

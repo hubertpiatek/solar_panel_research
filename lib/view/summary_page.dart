@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solar_panel_research/common/info_dialog.dart';
 import 'package:solar_panel_research/consumer/solar_consumer.dart';
-
-import '../common/error_alert_dialog.dart';
-import '../common/http_exception.dart';
 import '../controller/solar_panel_research_controller.dart';
+import 'weather_view.dart';
 
 class SummaryPage extends StatefulWidget {
   const SummaryPage({super.key});
@@ -21,7 +20,13 @@ class _SummaryPageState extends State<SummaryPage> {
     _solarPanelResearchController =
         context.read<SolarPanelResearchController>();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await getSummaryData();
+      if (!_solarPanelResearchController.isAfterInit) {
+        _solarPanelResearchController.setIsAfterInit = true;
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (!mounted) return;
+        await _solarPanelResearchController.getSummaryDataFromPanel(
+            context, mounted);
+      }
     });
     super.initState();
   }
@@ -32,65 +37,102 @@ class _SummaryPageState extends State<SummaryPage> {
       listen: true,
       builder: (context, model) {
         _solarPanelResearchController = model;
-        return SingleChildScrollView(
-          //physics: const AlwaysScrollableScrollPhysics(),
-          child: Center(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await getSummaryData();
-              },
-              child: Stack(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/solar_panel_background.png",
-                      ),
-                      const SizedBox(
-                        height: 16.0,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          showSummaryStat(
-                              "Wytworzona moc",
-                              Colors.green.shade700,
-                              Icons.solar_power_outlined,
-                              "${_solarPanelResearchController.summaryModel.generatedPower} kWh"),
-                          showSummaryStat(
-                              "Średnie napięcie",
-                              Colors.yellow.shade700,
-                              Icons.power_outlined,
-                              "${_solarPanelResearchController.summaryModel.averageVoltage} V"),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 8,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          showSummaryStat(
-                              "Średnie natężenie",
-                              Colors.red.shade700,
-                              Icons.electric_meter_outlined,
-                              "${_solarPanelResearchController.summaryModel.averageCurrent} A"),
-                          showSummaryStat(
-                              "Średnia temp.",
-                              Colors.blue.shade700,
-                              Icons.wb_sunny_outlined,
-                              "${_solarPanelResearchController.summaryModel.averageTemperature} °C"),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.26,
-                      child: ListView()),
-                ],
+        return Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              alignment: Alignment.topCenter,
+              image: AssetImage(
+                "assets/solar_panel_background.png",
               ),
+            ),
+          ),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await _solarPanelResearchController.getSummaryDataFromPanel(
+                  context, mounted);
+            },
+            child: ListView(
+              children: [
+                SingleChildScrollView(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const WeatherView(),
+                            _solarPanelResearchController.weather == null
+                                ? Container()
+                                : Container(
+                                    margin:
+                                        const EdgeInsets.fromLTRB(0, 0, 16, 6),
+                                    child: GestureDetector(
+                                      child: IconButton(
+                                        onPressed: () async {
+                                          await showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return const InfoDialog(
+                                                  titleContent: "Informacja!",
+                                                  infoContent:
+                                                      "Prezentowane dane bazują na badaniach polikrystalicznego panelu fotowoltaicznego o mocy 110W. W celu osiągnięcia optymalnych statystyk i wyników, uwzględniane są tylko odczyty uzyskane w godzinach 06:00 - 22:00.");
+                                            },
+                                          );
+                                        },
+                                        icon: const Icon(
+                                          Icons.info,
+                                          color: Colors.white,
+                                          size: 45,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 32.0,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            showSummaryStat(
+                                "Wytworzona moc",
+                                Colors.green.shade700,
+                                Icons.solar_power_outlined,
+                                "${_solarPanelResearchController.summaryModel.generatedPower} kWh"),
+                            showSummaryStat(
+                                "Średnie napięcie",
+                                Colors.yellow.shade700,
+                                Icons.power_outlined,
+                                "${_solarPanelResearchController.summaryModel.averageVoltage} V"),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            showSummaryStat(
+                                "Średnie natężenie",
+                                Colors.red.shade700,
+                                Icons.electric_meter_outlined,
+                                "${_solarPanelResearchController.summaryModel.averageCurrent} A"),
+                            showSummaryStat(
+                                "Średnia temp.",
+                                Colors.blue.shade700,
+                                Icons.wb_sunny_outlined,
+                                "${_solarPanelResearchController.summaryModel.averageTemperature} °C"),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -154,19 +196,5 @@ class _SummaryPageState extends State<SummaryPage> {
         ),
       ),
     );
-  }
-
-  Future<void> getSummaryData() async {
-    try {
-      await _solarPanelResearchController.getSummaryData();
-    } catch (error) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return ErrorAlertDialog(errorContent: error.toString());
-        },
-      );
-      _solarPanelResearchController.setIsSummaryDataLoading = false;
-    }
   }
 }

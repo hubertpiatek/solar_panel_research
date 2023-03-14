@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       // backgroundColor: Colors.indigo.shade500.withOpacity(0.7),
       //backgroundColor: Colors.blue.shade800.withOpacity(0.7),
-      backgroundColor: Colors.grey.shade800.withOpacity(0.75),
+      backgroundColor: Colors.grey.shade800.withOpacity(0.9),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
             color: Colors.black12.withOpacity(0.05),
@@ -88,6 +88,8 @@ class _HomePageState extends State<HomePage>
         controller: _tabController,
         children: [
           const SummaryPage(),
+          /* add child content here */
+
           const LastSolarData(),
           Container(),
         ],

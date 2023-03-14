@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:solar_panel_research/consumer/solar_consumer.dart';
-import '../common/error_alert_dialog.dart';
 import '../controller/solar_panel_research_controller.dart';
-import 'package:fl_chart/fl_chart.dart';
-
 import '../model/solar_data_single_model.dart';
+import 'chart_view.dart';
 
 class LastSolarData extends StatefulWidget {
   const LastSolarData({super.key});
@@ -17,18 +15,12 @@ class LastSolarData extends StatefulWidget {
 
 class _LastSolarDataState extends State<LastSolarData> {
   late SolarPanelResearchController _solarPanelResearchController;
-  final List<Color> gradientColors = [
-    Colors.blue,
-    const Color(0xff02d39a),
-  ];
+
   @override
   void initState() {
     _solarPanelResearchController =
         context.read<SolarPanelResearchController>();
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await getLastSolarData();
-    });
   }
 
   @override
@@ -43,7 +35,8 @@ class _LastSolarDataState extends State<LastSolarData> {
           //physics: const AlwaysScrollableScrollPhysics(),
           child: RefreshIndicator(
             onRefresh: () async {
-              await getLastSolarData();
+              await _solarPanelResearchController.getSummaryDataFromPanel(
+                  context, mounted);
             },
             child: Stack(
               children: [
@@ -103,7 +96,7 @@ class _LastSolarDataState extends State<LastSolarData> {
                                               Colors.green),
                                           ...getLastInfoSingleData(
                                               "Napięcie:",
-                                              "15 V",
+                                              "${lastSolarDataModel.voltage} V",
                                               Icons.power_outlined,
                                               Colors.yellow.shade800),
                                           ...getLastInfoSingleData(
@@ -148,118 +141,7 @@ class _LastSolarDataState extends State<LastSolarData> {
                             ? const Center(
                                 child: CircularProgressIndicator(),
                               )
-                            : Column(
-                                children: [
-                                  Container(
-                                    margin:
-                                        const EdgeInsets.fromLTRB(8, 16, 32, 8),
-                                    height: MediaQuery.of(context).size.height *
-                                        0.35,
-                                    child: LineChart(
-                                      LineChartData(
-                                          backgroundColor: Colors.indigo.shade500
-                                              .withOpacity(0.9),
-                                          titlesData: FlTitlesData(
-                                              show: true,
-                                              rightTitles: AxisTitles(),
-                                              topTitles: AxisTitles(),
-                                              leftTitles: AxisTitles(
-                                                  axisNameWidget: Text(
-                                                      _solarPanelResearchController
-                                                          .actualSelectedFilter),
-                                                  drawBehindEverything: true,
-                                                  axisNameSize: 24,
-                                                  sideTitles: SideTitles(
-                                                      showTitles: true)),
-                                              bottomTitles: AxisTitles(
-                                                  axisNameWidget: Container(
-                                                      margin: const EdgeInsets
-                                                              .fromLTRB(
-                                                          40, 12, 0, 0),
-                                                      child: const Text(
-                                                          "Czas [ t ]")),
-                                                  drawBehindEverything: true,
-                                                  axisNameSize: 30,
-                                                  sideTitles: SideTitles(
-                                                      showTitles: true))),
-                                          minX: 6,
-                                          maxX: 20,
-                                          minY: 0,
-                                          maxY: 6,
-                                          gridData: FlGridData(
-                                            show: true,
-                                            getDrawingHorizontalLine: (value) {
-                                              return FlLine(
-                                                color: Colors.blue.shade500,
-                                                strokeWidth: 1,
-                                              );
-                                            },
-                                            getDrawingVerticalLine: (value) {
-                                              return FlLine(
-                                                color: Colors.blue.shade500,
-                                                strokeWidth: 1,
-                                              );
-                                            },
-                                          ),
-                                          borderData: FlBorderData(show: true),
-                                          lineBarsData: [
-                                            LineChartBarData(
-                                              spots: const [
-                                                FlSpot(6, 1),
-                                                FlSpot(8.6, 2),
-                                                FlSpot(12.9, 5),
-                                                FlSpot(16.8, 2.5),
-                                                FlSpot(19.2, 2.5),
-                                                FlSpot(20, 2.5),
-                                              ],
-                                              barWidth: 4,
-                                              color: Colors.yellow.shade700,
-                                              isCurved: true,
-                                              dotData: FlDotData(show: true),
-                                              belowBarData: BarAreaData(
-                                                  show: true,
-                                                  color: gradientColors[0]
-                                                      .withOpacity(0.4)),
-                                            )
-                                          ]),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 16),
-                                    child: const Divider(
-                                      height: 3,
-                                      thickness: 1.5,
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 50),
-                                    child: DropdownButton<String>(
-                                      isExpanded: true,
-                                      alignment: AlignmentDirectional.center,
-                                      hint: Text(
-                                        _solarPanelResearchController
-                                            .actualSelectedFilter,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      items: SolarPanelResearchController
-                                          .chartFilterInfo.values
-                                          .map((String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
-                                      onChanged: (value) {
-                                        _solarPanelResearchController
-                                                .setActualSelectedFilter =
-                                            value ?? "";
-                                      },
-                                    ),
-                                  )
-                                ],
-                              ),
+                            : const ChartView(),
                       ),
                     ),
                   ],
@@ -298,19 +180,5 @@ class _LastSolarDataState extends State<LastSolarData> {
         ],
       ),
     ];
-  }
-
-  Future<void> getLastSolarData() async {
-    try {
-      await _solarPanelResearchController.getLastSolarData();
-    } catch (error) {
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return ErrorAlertDialog(errorContent: error.toString());
-        },
-      );
-      _solarPanelResearchController.setIsLastDataLoading = false;
-    }
   }
 }
