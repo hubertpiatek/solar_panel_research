@@ -29,18 +29,18 @@ class _LastSolarDataState extends State<LastSolarData> {
       listen: true,
       builder: (context, model) {
         _solarPanelResearchController = model;
+        // _solarPanelResearchController.setIsHistoricChartView = false;
         SolarDataModel lastSolarDataModel =
             _solarPanelResearchController.summaryModel.solarDataModel.last;
-        return SingleChildScrollView(
-          //physics: const AlwaysScrollableScrollPhysics(),
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await _solarPanelResearchController.getSummaryDataFromPanel(
-                  context, mounted);
-            },
-            child: Stack(
-              children: [
-                Column(
+        return RefreshIndicator(
+          onRefresh: () async {
+            await _solarPanelResearchController.getSummaryDataFromPanel(
+                context, mounted);
+          },
+          child: ListView(
+            children: [
+              SingleChildScrollView(
+                child: Column(
                   children: [
                     const SizedBox(
                       height: 6,
@@ -141,16 +141,13 @@ class _LastSolarDataState extends State<LastSolarData> {
                             ? const Center(
                                 child: CircularProgressIndicator(),
                               )
-                            : const ChartView(),
+                            : const ChartView(isHistoricView: false),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.37,
-                    child: ListView()),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

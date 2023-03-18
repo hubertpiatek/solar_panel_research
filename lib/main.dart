@@ -6,6 +6,7 @@ import 'package:solar_panel_research/view/home_page.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,11 @@ class SolarPanelApp extends StatelessWidget {
       ],
       child: MaterialApp(
           title: "Badania Panelu Fotowoltaicznego",
+          localizationsDelegates: const [GlobalMaterialLocalizations.delegate],
+          supportedLocales: const [
+            Locale('en', "EN"),
+            Locale('pl', "PL"),
+          ],
           theme: ThemeData(
               primarySwatch: Colors.blue,
               primaryColor: Colors.red,

@@ -27,10 +27,12 @@ class _WeatherViewState extends State<WeatherView> {
         builder: (context, model) {
           _solarPanelResearchController = model;
           return _solarPanelResearchController.weather == null
-              ? Container()
+              ? Container(
+                  height: MediaQuery.of(context).size.height * 0.243,
+                )
               : Container(
                   margin: const EdgeInsets.all(6.0),
-                  width: MediaQuery.of(context).size.width * 0.57,
+                  width: MediaQuery.of(context).size.width * 0.63,
                   child: Card(
                     color: Colors.grey.shade50.withOpacity(0.8),
                     elevation: 15,

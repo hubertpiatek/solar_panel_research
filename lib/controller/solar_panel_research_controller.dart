@@ -1,43 +1,37 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:solar_panel_research/service/solar_panel_research_service.dart';
 import 'package:weather/weather.dart';
 import '../common/error_alert_dialog.dart';
 import '../common/waiting_dialog.dart';
-import '../model/solar_data_single_model.dart';
+import '../model/chart_model.dart';
 import '../model/summary_model.dart';
 import 'package:geolocator/geolocator.dart';
 
-enum ChartFilterTypes {
-  power,
-  voltage,
-  current,
-  temperature,
-  humidity,
-  lightIntensity,
-  angle
+enum HistoricFilterTypes {
+  lastWeek,
+  lastMonth,
+  lastThreeMonths,
+  period,
+  singleDay
 }
 
 class SolarPanelResearchController extends ChangeNotifier {
-  static const Map<ChartFilterTypes, String> chartFilterInfo = {
-    ChartFilterTypes.power: "Moc [ W ]",
-    ChartFilterTypes.voltage: "Napięcie [ V ]",
-    ChartFilterTypes.current: "Natężenie [ A ]",
-    ChartFilterTypes.temperature: "Temperatura [ °C ]",
-    ChartFilterTypes.humidity: "Wilgotność [ % ]",
-    ChartFilterTypes.lightIntensity: "Intensywność [ Lux ]",
-    ChartFilterTypes.angle: "Kąt panelu [ ° ]",
+  static const Map<HistoricFilterTypes, String> historicFilters = {
+    HistoricFilterTypes.lastWeek: "Ostatni tydzień",
+    HistoricFilterTypes.lastMonth: "Ostatni miesiąc",
+    HistoricFilterTypes.lastThreeMonths: "Ostatnie 3 miesiące",
   };
-  late String _actualSelectedFilter;
+  late ChartModel _chartModelLast;
+  late ChartModel _chartModelHistoric;
+  late String _actualSelectedHistoricPeriodFilter;
   late SolarPanelResearchService _solarPanelResearchService;
   late bool _isSummaryDataLoading;
   late bool _isLastDataLoading;
+  late bool _isHistoricChartView;
   late SummaryModel _summaryModel;
-  late List<SolarDataModel> _lastDaySolarData;
   late bool _isAfterInit;
-  late double _solarChartMinValue;
-  late double _solarChartMaxValue;
-  late List<FlSpot> _chartFlSpotList;
   late WeatherFactory _weatherFactory;
   late Position _userPosition;
   Weather? _weather;
@@ -46,7 +40,35 @@ class SolarPanelResearchController extends ChangeNotifier {
     _solarPanelResearchService = SolarPanelResearchService();
     _isSummaryDataLoading = false;
     _isLastDataLoading = false;
-    _lastDaySolarData = [];
+    _isHistoricChartView = false;
+    _chartModelLast = ChartModel(
+        actualSelectedFilter:
+            ChartModel.chartFilterInfo[ChartFilterTypes.power]!,
+        chartData: [],
+        chartFlSpotList: [],
+        solarChartMinYValue: 0.0,
+        solarChartMaxYValue: 120.0,
+        solarChartMinXValue: 6.0,
+        solarChartMaxXValue: 22.0,
+        xAxisText: "Czas [ h ]",
+        selectedDate: DateTime(2022, 10, 1),
+        isDateSingleDay: true,
+        isPeriod: false);
+    _chartModelHistoric = ChartModel(
+        actualSelectedFilter:
+            ChartModel.chartFilterInfo[ChartFilterTypes.power]!,
+        chartData: [],
+        chartFlSpotList: [],
+        solarChartMinYValue: 0.0,
+        solarChartMaxYValue: 120.0,
+        solarChartMinXValue: 6.0,
+        solarChartMaxXValue: 22.0,
+        xAxisText: historicFilters[HistoricFilterTypes.lastWeek]!,
+        selectedDate: DateTime(
+                DateTime.now().year, DateTime.now().month, DateTime.now().day)
+            .subtract(const Duration(days: 7)),
+        isDateSingleDay: false,
+        isPeriod: false);
     _summaryModel = SummaryModel(
       averageCurrent: 0.0,
       averageTemperature: 0.0,
@@ -54,11 +76,9 @@ class SolarPanelResearchController extends ChangeNotifier {
       generatedPower: 0.0,
       solarDataModel: [],
     );
-    _actualSelectedFilter = "Moc [ W ]";
+    _actualSelectedHistoricPeriodFilter =
+        historicFilters[HistoricFilterTypes.lastWeek]!;
     _isAfterInit = false;
-    _solarChartMinValue = 0.0;
-    _solarChartMaxValue = 120.0;
-    _chartFlSpotList = [];
     _weatherFactory = WeatherFactory("a3de4ad59cc610af18180b1c4fb5f58d",
         language: Language.POLISH);
     _userPosition = const Position(
@@ -72,12 +92,29 @@ class SolarPanelResearchController extends ChangeNotifier {
         timestamp: null);
     _weather = null;
   }
-  double get solarChartMinValue {
-    return _solarChartMinValue;
+
+  ChartModel get chartModelLast {
+    return _chartModelLast;
   }
 
-  set setSolarChartMinValue(double solarChartMinValue) {
-    _solarChartMinValue = solarChartMinValue;
+  set setChartModelLast(ChartModel chartModelLast) {
+    _chartModelLast = chartModelLast;
+  }
+
+  bool get isHistoricChartView {
+    return _isHistoricChartView;
+  }
+
+  set setIsHistoricChartView(bool isHistoricChartView) {
+    _isHistoricChartView = isHistoricChartView;
+  }
+
+  ChartModel get chartModelHistoric {
+    return _chartModelHistoric;
+  }
+
+  set setChartModelHistoric(ChartModel chartModelHistoric) {
+    _chartModelHistoric = chartModelHistoric;
   }
 
   Weather? get weather {
@@ -104,37 +141,13 @@ class SolarPanelResearchController extends ChangeNotifier {
     _weatherFactory = weatherFactory;
   }
 
-  List<FlSpot> get chartFlSpotList {
-    return _chartFlSpotList;
+  String get actualSelectedHistoricPeriodFilter {
+    return _actualSelectedHistoricPeriodFilter;
   }
 
-  set setChartFlSpotList(List<FlSpot> chartFlSpotList) {
-    _chartFlSpotList = chartFlSpotList;
-  }
-
-  double get solarChartMaxValue {
-    return _solarChartMaxValue;
-  }
-
-  set setSolarChartMaxValue(double solarChartMaxValue) {
-    _solarChartMaxValue = solarChartMaxValue;
-  }
-
-  String get actualSelectedFilter {
-    return _actualSelectedFilter;
-  }
-
-  set setActualSelectedFilter(String actualSelectedFilter) {
-    _actualSelectedFilter = actualSelectedFilter;
-    notifyListeners();
-  }
-
-  List<SolarDataModel> get solarAllData {
-    return _lastDaySolarData;
-  }
-
-  set setSolarAllData(List<SolarDataModel> solarAllData) {
-    _lastDaySolarData = solarAllData;
+  set setActualSelectedHistoricPeriodFilter(
+      String actualSelectedHistoricPeriodFilter) {
+    _actualSelectedHistoricPeriodFilter = actualSelectedHistoricPeriodFilter;
   }
 
   SummaryModel get summaryModel {
@@ -178,14 +191,12 @@ class SolarPanelResearchController extends ChangeNotifier {
   set setSolarPanelResearchService(
       SolarPanelResearchService solarPanelResearchService) {
     _solarPanelResearchService = solarPanelResearchService;
-    notifyListeners();
   }
 
   Future<void> getSummaryData() async {
     setIsSummaryDataLoading = true;
     _summaryModel = await _solarPanelResearchService.getSummaryData();
 
-    setIsSummaryDataLoading = false;
     // _lastDaySolarData = _summaryModel.solarDataModel
     //     .where((solarSingleData) =>
     //         solarSingleData.solarDate.year ==
@@ -195,13 +206,36 @@ class SolarPanelResearchController extends ChangeNotifier {
     //         solarSingleData.solarDate.day ==
     //             _summaryModel.solarDataModel.last.solarDate.day)
     //     .toList();
-    _lastDaySolarData = _summaryModel.solarDataModel
+    //Pobierz ostatnie dane i pokaż na wykresie
+    _chartModelLast.chartData = _summaryModel.solarDataModel
         .where((solarSingleData) =>
             solarSingleData.solarDate.year == DateTime(2022, 10, 1).year &&
             solarSingleData.solarDate.month == DateTime(2022, 10, 1).month &&
             solarSingleData.solarDate.day == DateTime(2022, 10, 1).day)
         .toList();
-    setSolarChartFilter(_actualSelectedFilter);
+    setSolarChartFilter(_chartModelLast.actualSelectedFilter,
+        isHistoric: false);
+    //Pobierz dane historyczne i pokaż na wykresie
+    if (_chartModelHistoric.isDateSingleDay) {
+      _chartModelHistoric.chartData = _summaryModel.solarDataModel
+          .where((solarSingleData) =>
+              solarSingleData.solarDate.year ==
+                  _chartModelHistoric.selectedDate.year &&
+              solarSingleData.solarDate.month ==
+                  _chartModelHistoric.selectedDate.month &&
+              solarSingleData.solarDate.day ==
+                  _chartModelHistoric.selectedDate.day)
+          .toList();
+    } else {
+      _chartModelHistoric.chartData = _summaryModel.solarDataModel
+          .where((solarSingleData) => solarSingleData.solarDate
+              .isAfter(_chartModelHistoric.selectedDate))
+          .toList();
+    }
+    setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
+        isHistoric: true);
+
+    setIsSummaryDataLoading = false;
   }
 
   Future<void> getSummaryDataFromPanel(
@@ -233,103 +267,173 @@ class SolarPanelResearchController extends ChangeNotifier {
     }
   }
 
-  void setSolarChartFilter(String value) {
-    _actualSelectedFilter = value;
+  void setSolarChartFilter(String value, {required bool isHistoric}) {
+    ChartModel chartModel = isHistoric ? _chartModelHistoric : _chartModelLast;
+    chartModel.actualSelectedFilter = value;
     List<FlSpot> chartFlSpotList = [];
-    ChartFilterTypes chartFiler =
-        chartFilterInfo.keys.firstWhere((key) => chartFilterInfo[key] == value);
-    switch (chartFiler) {
-      case ChartFilterTypes.power:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 120;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.power));
-        }
-        break;
-      case ChartFilterTypes.voltage:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 24;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.voltage));
-        }
-        break;
-      case ChartFilterTypes.current:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 6;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.current));
-        }
-        break;
-      case ChartFilterTypes.temperature:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 40;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.temperature));
-        }
-        break;
-      case ChartFilterTypes.humidity:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 100;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.humidity.toDouble()));
-        }
-        break;
-      case ChartFilterTypes.lightIntensity:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 65000;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.lightIntensity));
-        }
-        break;
-      case ChartFilterTypes.angle:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 50;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.solarAngle.toDouble()));
-        }
-        break;
-      default:
-        _solarChartMinValue = 0;
-        _solarChartMaxValue = 120;
-        for (var singleSolarData in _lastDaySolarData) {
-          chartFlSpotList.add(FlSpot(
-              singleSolarData.solarDate.hour.toDouble() +
-                  singleSolarData.solarDate.minute.toDouble() / 60 +
-                  singleSolarData.solarDate.second.toDouble() / 3600,
-              singleSolarData.power));
-        }
-        break;
+    chartModel.chartFlSpotList = [];
+    chartModel.solarChartMinXValue = 0;
+    chartModel.solarChartMaxXValue = 0;
+    if (chartModel.chartData.isNotEmpty) {
+      ChartFilterTypes chartFilter = ChartModel.chartFilterInfo.keys
+          .firstWhere((key) => ChartModel.chartFilterInfo[key] == value);
+      chartModel.solarChartMinXValue =
+          chartModel.chartData.first.solarDate.millisecondsSinceEpoch / 100000;
+      chartModel.solarChartMaxXValue =
+          chartModel.chartData.last.solarDate.millisecondsSinceEpoch / 100000;
+      switch (chartFilter) {
+        case ChartFilterTypes.power:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 120;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.power));
+          }
+          break;
+        case ChartFilterTypes.voltage:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 24;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.voltage));
+          }
+          break;
+        case ChartFilterTypes.current:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 6;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.current));
+          }
+          break;
+        case ChartFilterTypes.temperature:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 40;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.temperature));
+          }
+          break;
+        case ChartFilterTypes.humidity:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 100;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.humidity.toDouble()));
+          }
+          break;
+        case ChartFilterTypes.lightIntensity:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 65000;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.lightIntensity));
+          }
+          break;
+        case ChartFilterTypes.angle:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 50;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.solarAngle.toDouble()));
+          }
+          break;
+        default:
+          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMaxYValue = 120;
+          for (var singleSolarData in chartModel.chartData) {
+            chartFlSpotList.add(FlSpot(
+                singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
+                singleSolarData.power));
+          }
+          break;
+      }
     }
-    _chartFlSpotList = chartFlSpotList;
+    chartModel.chartFlSpotList = chartFlSpotList;
+    if (isHistoric) {
+      _chartModelHistoric = chartModel;
+    } else {
+      _chartModelLast = chartModel;
+    }
     notifyListeners();
+  }
+
+  void changeHistoricChartPeriod(String value) {
+    _chartModelHistoric.xAxisText = value;
+    _actualSelectedHistoricPeriodFilter = value;
+    _chartModelHistoric.isPeriod = false;
+    HistoricFilterTypes historicFilterPeriod =
+        historicFilters.keys.firstWhere((key) => historicFilters[key] == value);
+    DateTime periodFilterDate;
+    switch (historicFilterPeriod) {
+      case HistoricFilterTypes.lastWeek:
+        {
+          periodFilterDate = DateTime(
+                  DateTime.now().year, DateTime.now().month, DateTime.now().day)
+              .subtract(const Duration(days: 7));
+          break;
+        }
+      case HistoricFilterTypes.lastMonth:
+        {
+          periodFilterDate = DateTime(
+                  DateTime.now().year, DateTime.now().month, DateTime.now().day)
+              .subtract(const Duration(days: 31));
+          break;
+        }
+      case HistoricFilterTypes.lastThreeMonths:
+        {
+          periodFilterDate = DateTime(
+                  DateTime.now().year, DateTime.now().month, DateTime.now().day)
+              .subtract(const Duration(days: 92));
+          break;
+        }
+      default:
+        {
+          periodFilterDate = DateTime(
+                  DateTime.now().year, DateTime.now().month, DateTime.now().day)
+              .subtract(const Duration(days: 7));
+          break;
+        }
+    }
+    _chartModelHistoric.isDateSingleDay = false;
+    _chartModelHistoric.selectedDate = periodFilterDate;
+    _chartModelHistoric.chartData = _summaryModel.solarDataModel
+        .where((solarSingleData) =>
+            solarSingleData.solarDate.isAfter(periodFilterDate))
+        .toList();
+    setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
+        isHistoric: true);
+  }
+
+  void getHistoricDataCalendarFilter(DateTime date) {
+    if (_chartModelHistoric.isPeriod) {
+      _chartModelHistoric.isDateSingleDay = false;
+      _chartModelHistoric.xAxisText =
+          "${DateFormat("dd-MM-yyyy").format(date)} - ${DateFormat("dd-MM-yyyy").format(DateTime.now())}";
+      _chartModelHistoric.chartData = _summaryModel.solarDataModel
+          .where((solarSingleData) => solarSingleData.solarDate.isAfter(date))
+          .toList();
+    } else {
+      _chartModelHistoric.isDateSingleDay = true;
+      _chartModelHistoric.xAxisText = DateFormat("dd-MM-yyyy").format(date);
+      _chartModelHistoric.chartData = _summaryModel.solarDataModel
+          .where((solarSingleData) =>
+              solarSingleData.solarDate.year == date.year &&
+              solarSingleData.solarDate.month == date.month &&
+              solarSingleData.solarDate.day == date.day)
+          .toList();
+    }
+    _chartModelHistoric.selectedDate = date;
+
+    setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
+        isHistoric: true);
   }
 
   Future<void> getUserPositionForWeather() async {

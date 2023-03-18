@@ -1,11 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:solar_panel_research/consumer/solar_consumer.dart';
 import 'package:solar_panel_research/controller/solar_panel_research_controller.dart';
+import '../model/chart_model.dart';
 
 class ChartView extends StatefulWidget {
-  const ChartView({super.key});
+  final bool isHistoricView;
+  const ChartView({super.key, required this.isHistoricView});
 
   @override
   State<ChartView> createState() => _ChartViewState();
@@ -29,7 +32,7 @@ class _ChartViewState extends State<ChartView> {
         return Column(
           children: [
             Container(
-              margin: const EdgeInsets.fromLTRB(8, 16, 25, 8),
+              margin: const EdgeInsets.fromLTRB(8, 16, 25, 4),
               height: MediaQuery.of(context).size.height * 0.35,
               child: LineChart(
                 LineChartData(
@@ -40,41 +43,59 @@ class _ChartViewState extends State<ChartView> {
                       topTitles: AxisTitles(),
                       // leftTitles: AxisTitles(
                       //     axisNameWidget: Container(
-                      //       margin:
-                      //           const EdgeInsets.only(
-                      //               left: 40),
-                      //       child: Text(
-                      //           _solarPanelResearchController
-                      //               .actualSelectedFilter),
+                      //       margin: const EdgeInsets.only(left: 40),
+                      //       child: Text(_solarPanelResearchController
+                      //           .chartModelHistoric.actualSelectedFilter),
                       //     ),
                       //     drawBehindEverything: true,
                       //     axisNameSize: 24,
-                      //     sideTitles: SideTitles(
-                      //         reservedSize: 26,
-                      //         showTitles: true)),
+                      //     sideTitles:
+                      //         SideTitles(reservedSize: 26, showTitles: true)),
                       bottomTitles: AxisTitles(
                         axisNameWidget: Container(
-                            margin: const EdgeInsets.fromLTRB(40, 12, 0, 0),
-                            child: const Text("Czas [ t ]")),
+                            margin: widget.isHistoricView
+                                ? const EdgeInsets.fromLTRB(30, 0, 0, 0)
+                                : const EdgeInsets.fromLTRB(30, 12, 0, 0),
+                            child: Text(
+                              widget.isHistoricView
+                                  ? _solarPanelResearchController
+                                      .chartModelHistoric.xAxisText
+                                  : _solarPanelResearchController
+                                      .chartModelLast.xAxisText,
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.black54),
+                            )),
                         drawBehindEverything: true,
                         axisNameSize: 30,
                         sideTitles: SideTitles(
                           showTitles: true,
+                          interval: 2,
                           getTitlesWidget: (value, meta) {
-                            switch (value.toInt()) {
-                              case 10:
-                                return const Text("Maj");
-                              default:
-                                return Text(value.toString());
-                            }
+                            return getXAxisTextForChart(value, meta);
                           },
                         ),
                       ),
                     ),
-                    minX: 6,
-                    maxX: 22,
-                    minY: _solarPanelResearchController.solarChartMinValue,
-                    maxY: _solarPanelResearchController.solarChartMaxValue,
+                    minX: widget.isHistoricView
+                        ? _solarPanelResearchController
+                            .chartModelHistoric.solarChartMinXValue
+                        : _solarPanelResearchController
+                            .chartModelLast.solarChartMinXValue,
+                    maxX: widget.isHistoricView
+                        ? _solarPanelResearchController
+                            .chartModelHistoric.solarChartMaxXValue
+                        : _solarPanelResearchController
+                            .chartModelLast.solarChartMaxXValue,
+                    minY: widget.isHistoricView
+                        ? _solarPanelResearchController
+                            .chartModelHistoric.solarChartMinYValue
+                        : _solarPanelResearchController
+                            .chartModelLast.solarChartMinYValue,
+                    maxY: widget.isHistoricView
+                        ? _solarPanelResearchController
+                            .chartModelHistoric.solarChartMaxYValue
+                        : _solarPanelResearchController
+                            .chartModelLast.solarChartMaxYValue,
                     gridData: FlGridData(
                       show: true,
                       getDrawingHorizontalLine: (value) {
@@ -92,17 +113,33 @@ class _ChartViewState extends State<ChartView> {
                     ),
                     borderData: FlBorderData(show: true),
                     lineBarsData: [
-                      LineChartBarData(
-                        spots: [
-                          ..._solarPanelResearchController.chartFlSpotList
-                        ],
-                        barWidth: 4,
-                        color: Colors.yellow.shade700,
-                        isCurved: true,
-                        dotData: FlDotData(show: false),
-                        belowBarData: BarAreaData(
-                            show: true, color: Colors.blue.withOpacity(0.4)),
-                      )
+                      widget.isHistoricView
+                          ? LineChartBarData(
+                              spots: [
+                                ..._solarPanelResearchController
+                                    .chartModelHistoric.chartFlSpotList
+                              ],
+                              barWidth: 4,
+                              color: Colors.yellow.shade700,
+                              isCurved: true,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                  show: true,
+                                  color: Colors.blue.withOpacity(0.4)),
+                            )
+                          : LineChartBarData(
+                              spots: [
+                                ..._solarPanelResearchController
+                                    .chartModelLast.chartFlSpotList
+                              ],
+                              barWidth: 4,
+                              color: Colors.yellow.shade700,
+                              isCurved: true,
+                              dotData: FlDotData(show: false),
+                              belowBarData: BarAreaData(
+                                  show: true,
+                                  color: Colors.blue.withOpacity(0.4)),
+                            )
                     ]),
               ),
             ),
@@ -119,19 +156,24 @@ class _ChartViewState extends State<ChartView> {
                 isExpanded: true,
                 alignment: AlignmentDirectional.center,
                 hint: Text(
-                  _solarPanelResearchController.actualSelectedFilter,
+                  widget.isHistoricView
+                      ? _solarPanelResearchController
+                          .chartModelHistoric.actualSelectedFilter
+                      : _solarPanelResearchController
+                          .chartModelLast.actualSelectedFilter,
                   textAlign: TextAlign.center,
                 ),
-                items: SolarPanelResearchController.chartFilterInfo.values
-                    .map((String value) {
+                items: ChartModel.chartFilterInfo.values.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
                   );
                 }).toList(),
                 onChanged: (value) {
-                  _solarPanelResearchController
-                      .setSolarChartFilter(value ?? "");
+                  _solarPanelResearchController.setIsHistoricChartView =
+                      widget.isHistoricView;
+                  _solarPanelResearchController.setSolarChartFilter(value ?? "",
+                      isHistoric: widget.isHistoricView);
                 },
               ),
             )
@@ -139,5 +181,131 @@ class _ChartViewState extends State<ChartView> {
         );
       },
     );
+  }
+
+  Widget getTextForPeriodFilter(double value) {
+    Widget text;
+    HistoricFilterTypes historicFilterPeriod =
+        SolarPanelResearchController.historicFilters.keys.firstWhere((key) =>
+            SolarPanelResearchController.historicFilters[key] ==
+            _solarPanelResearchController.actualSelectedHistoricPeriodFilter);
+
+    switch (historicFilterPeriod) {
+      case HistoricFilterTypes.lastWeek:
+        {
+          String weekDay = DateFormat('EEEE', 'pl').format(
+              DateTime.fromMillisecondsSinceEpoch((value * 100000).toInt()));
+          text = Text(
+            weekDay.toString().substring(0, 3),
+            style: const TextStyle(fontWeight: FontWeight.w300),
+          );
+          return text;
+        }
+      case HistoricFilterTypes.lastMonth:
+        {
+          int monthDay =
+              DateTime.fromMillisecondsSinceEpoch((value * 100000).toInt()).day;
+          text = Text(
+            monthDay.toString(),
+            style: const TextStyle(fontWeight: FontWeight.w300),
+          );
+          return text;
+        }
+      case HistoricFilterTypes.lastThreeMonths:
+        {
+          String month = DateFormat('MMM', 'pl').format(
+              DateTime.fromMillisecondsSinceEpoch((value * 100000).toInt()));
+          text = Text(
+            month.toString(),
+            style: const TextStyle(fontWeight: FontWeight.w300),
+          );
+          return text;
+        }
+      default:
+        {
+          text = const Text("");
+          break;
+        }
+    }
+    return text;
+  }
+
+  Widget getXAxisTextForChart(double value, TitleMeta meta) {
+    var hour =
+        DateTime.fromMillisecondsSinceEpoch((value * 100000).toInt()).hour;
+    switch (meta.axisPosition.toInt()) {
+      case 1:
+        if (!widget.isHistoricView ||
+            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+          return Text(hour.toString());
+        } else if (widget.isHistoricView &&
+            _solarPanelResearchController.chartModelHistoric.isPeriod) {
+          return const Text("");
+        } else {
+          return getTextForPeriodFilter(value);
+        }
+      case 50:
+        if (!widget.isHistoricView ||
+            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+          return Text(hour.toString());
+        } else if (widget.isHistoricView &&
+            _solarPanelResearchController.chartModelHistoric.isPeriod) {
+          return const Text("");
+        } else {
+          return getTextForPeriodFilter(value);
+        }
+      case 100:
+        if (!widget.isHistoricView ||
+            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+          return Text(hour.toString());
+        } else if (widget.isHistoricView &&
+            _solarPanelResearchController.chartModelHistoric.isPeriod) {
+          return const Text("");
+        } else {
+          return getTextForPeriodFilter(value);
+        }
+      case 150:
+        if (!widget.isHistoricView ||
+            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+          return Text(hour.toString());
+        } else if (widget.isHistoricView &&
+            _solarPanelResearchController.chartModelHistoric.isPeriod) {
+          return const Text("");
+        } else {
+          return getTextForPeriodFilter(value);
+        }
+      case 200:
+        if (!widget.isHistoricView ||
+            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+          return Text(hour.toString());
+        } else if (widget.isHistoricView &&
+            _solarPanelResearchController.chartModelHistoric.isPeriod) {
+          return const Text("");
+        } else {
+          return getTextForPeriodFilter(value);
+        }
+      case 250:
+        if (!widget.isHistoricView ||
+            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+          return Text(hour.toString());
+        } else if (widget.isHistoricView &&
+            _solarPanelResearchController.chartModelHistoric.isPeriod) {
+          return const Text("");
+        } else {
+          return getTextForPeriodFilter(value);
+        }
+      case 280:
+        if (!widget.isHistoricView ||
+            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+          return Text(hour.toString());
+        } else if (widget.isHistoricView &&
+            _solarPanelResearchController.chartModelHistoric.isPeriod) {
+          return const Text("");
+        } else {
+          return getTextForPeriodFilter(value);
+        }
+      default:
+        return const Text("");
+    }
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solar_panel_research/view/summary_page.dart';
-
+import 'historic_solar_data.dart';
 import 'last_solar_data.dart';
 
 class HomePage extends StatefulWidget {
@@ -31,7 +31,8 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       // backgroundColor: Colors.indigo.shade500.withOpacity(0.7),
       //backgroundColor: Colors.blue.shade800.withOpacity(0.7),
-      backgroundColor: Colors.grey.shade800.withOpacity(0.9),
+      // backgroundColor: Colors.blue.shade500.withOpacity(0.8),
+      backgroundColor: Colors.blue.shade700,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
             color: Colors.black12.withOpacity(0.05),
@@ -86,12 +87,10 @@ class _HomePageState extends State<HomePage>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          const SummaryPage(),
-          /* add child content here */
-
-          const LastSolarData(),
-          Container(),
+        children: const [
+          SummaryPage(),
+          LastSolarData(),
+          HistoricSolarData(),
         ],
       ),
     );
