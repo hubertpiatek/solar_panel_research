@@ -69,7 +69,7 @@ class _ChartViewState extends State<ChartView> {
                         axisNameSize: 30,
                         sideTitles: SideTitles(
                           showTitles: true,
-                          interval: 2,
+                          interval: 1,
                           getTitlesWidget: (value, meta) {
                             return getXAxisTextForChart(value, meta);
                           },

@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class SolarDataModel {
   DateTime solarDate;
   double power;
@@ -21,13 +23,14 @@ class SolarDataModel {
     required this.solarAngle,
   });
 
-  factory SolarDataModel.fromJson(Map<String, dynamic> json, DateTime date) {
+  factory SolarDataModel.fromJson(Map<String, dynamic> json) {
     double voltage = double.tryParse(json['voltage'] ?? "") ?? 0.0;
     double current = double.tryParse(json['current'] ?? "") ?? 0.0;
     double basicPower = voltage * current;
     double power = double.tryParse(basicPower.toStringAsFixed(2)) ?? 0.0;
     return SolarDataModel(
-      solarDate: date,
+      solarDate:
+          DateFormat("dd-MM-yyyy hh:mm:ss").parse(json['dateAndTime'] ?? ""),
       power: power,
       voltage: voltage,
       current: current,

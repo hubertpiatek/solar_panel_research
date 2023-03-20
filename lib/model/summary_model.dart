@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 import 'package:solar_panel_research/model/solar_data_single_model.dart';
 
 class SummaryModel {
-  static const solarPanelSavesPerMinute = 84;
+  static const solarPanelSavesPerMinute = 6;
   double generatedPower;
   double averageVoltage;
   double averageCurrent;
@@ -15,50 +15,45 @@ class SummaryModel {
       required this.averageTemperature,
       required this.solarDataModel});
 
-  factory SummaryModel.fromJson(Map<String, dynamic> json) {
+  Future<SummaryModel> init(Map<String, dynamic> json) async {
     List<SolarDataModel> solarDataModel = [];
     double averageVoltage = 0.0;
     double averageCurrent = 0.0;
     double averageTemperature = 0.0;
     double generatedPower = 0.0;
-    json.forEach((day, items) {
+    await Future.forEach(json.values, (items) async {
       Map<String, dynamic> solarDataList = items;
       try {
-        solarDataList.forEach((hour, solarDataSingleModel) {
-          DateTime formattedDate =
-              DateFormat("dd-MM-yyyy hh:mm:ss").parse("$day 00:00:00");
-          DateTime formattedDateHour =
-              DateFormat("dd-MM-yyyy hh:mm:ss").parse("01-01-1990 $hour");
+        await Future.forEach(solarDataList.values,
+            (solarDataSingleModel) async {
           //Tylko Dane Pomiędzy 6 i 21
-          if (formattedDateHour.hour >= 6 && formattedDateHour.hour <= 21) {
-            formattedDate = formattedDate.add(Duration(
-                hours: formattedDateHour.hour,
-                minutes: formattedDateHour.minute,
-                seconds: formattedDateHour.second));
-            solarDataModel.add(
-                SolarDataModel.fromJson(solarDataSingleModel, formattedDate));
-          }
+          try {
+            DateTime solarDate = DateFormat("dd-MM-yyyy hh:mm:ss")
+                .parse(solarDataSingleModel['dateAndTime'] ?? "");
+            if (solarDate.hour >= 6 && solarDate.hour <= 21) {
+              solarDataModel.add(SolarDataModel.fromJson(solarDataSingleModel));
+            }
+          } catch (_) {}
         });
       } catch (error) {
         rethrow;
       }
     });
     solarDataModel.sort((a, b) => a.solarDate.compareTo(b.solarDate));
-
-    for (var singleSolarDataMode in solarDataModel) {
+    await Future.forEach(solarDataModel, (singleSolarDataMode) {
       averageVoltage += singleSolarDataMode.voltage;
       averageCurrent += singleSolarDataMode.current;
       averageTemperature += singleSolarDataMode.temperature;
       generatedPower +=
           (singleSolarDataMode.voltage * singleSolarDataMode.current);
-    }
+    });
     averageVoltage = double.parse(
         (averageVoltage / solarDataModel.length).toStringAsFixed(2));
     averageCurrent = double.parse(
         (averageCurrent / solarDataModel.length).toStringAsFixed(2));
     averageTemperature = double.parse(
         (averageTemperature / solarDataModel.length).toStringAsFixed(2));
-    //84 Liczba odczytów panelu na godzinę
+    //6 Liczba odczytów panelu na godzinę
     //1000 - przeliczenie Wh na kWh
     generatedPower = double.parse(
         (generatedPower / solarPanelSavesPerMinute / 1000).toStringAsFixed(3));

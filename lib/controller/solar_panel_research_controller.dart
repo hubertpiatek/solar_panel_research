@@ -196,25 +196,19 @@ class SolarPanelResearchController extends ChangeNotifier {
   Future<void> getSummaryData() async {
     setIsSummaryDataLoading = true;
     _summaryModel = await _solarPanelResearchService.getSummaryData();
-
-    // _lastDaySolarData = _summaryModel.solarDataModel
-    //     .where((solarSingleData) =>
-    //         solarSingleData.solarDate.year ==
-    //             _summaryModel.solarDataModel.last.solarDate.year &&
-    //         solarSingleData.solarDate.month ==
-    //             _summaryModel.solarDataModel.last.solarDate.month &&
-    //         solarSingleData.solarDate.day ==
-    //             _summaryModel.solarDataModel.last.solarDate.day)
-    //     .toList();
     //Pobierz ostatnie dane i pokaż na wykresie
     _chartModelLast.chartData = _summaryModel.solarDataModel
         .where((solarSingleData) =>
-            solarSingleData.solarDate.year == DateTime(2022, 10, 1).year &&
-            solarSingleData.solarDate.month == DateTime(2022, 10, 1).month &&
-            solarSingleData.solarDate.day == DateTime(2022, 10, 1).day)
+            solarSingleData.solarDate.year ==
+                _summaryModel.solarDataModel.last.solarDate.year &&
+            solarSingleData.solarDate.month ==
+                _summaryModel.solarDataModel.last.solarDate.month &&
+            solarSingleData.solarDate.day ==
+                _summaryModel.solarDataModel.last.solarDate.day)
         .toList();
     setSolarChartFilter(_chartModelLast.actualSelectedFilter,
         isHistoric: false);
+
     //Pobierz dane historyczne i pokaż na wykresie
     if (_chartModelHistoric.isDateSingleDay) {
       _chartModelHistoric.chartData = _summaryModel.solarDataModel

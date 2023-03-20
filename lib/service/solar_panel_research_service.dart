@@ -8,14 +8,20 @@ class SolarPanelResearchService {
   Future<SummaryModel> getSummaryData() async {
     try {
       final DataSnapshot summarySolarData = await solarDb
-          .child("solarDataFromSun")
+          .child("solarDataFromSunFinal")
           .get()
           .timeout(const Duration(seconds: 15));
       if (summarySolarData.exists) {
         String stringSummaryData = jsonEncode(summarySolarData.value);
         Map<String, dynamic> summarySolarDataMap =
             jsonDecode(stringSummaryData);
-        return SummaryModel.fromJson(summarySolarDataMap);
+        SummaryModel summaryModel = SummaryModel(
+            generatedPower: 0.0,
+            averageVoltage: 0.0,
+            averageCurrent: 0.0,
+            averageTemperature: 0.0,
+            solarDataModel: []);
+        return await summaryModel.init(summarySolarDataMap);
       } else {
         return SummaryModel(
             generatedPower: 0.0,
