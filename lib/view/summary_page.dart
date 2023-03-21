@@ -78,7 +78,7 @@ class _SummaryPageState extends State<SummaryPage> {
                                               return const InfoDialog(
                                                   titleContent: "Informacja!",
                                                   infoContent:
-                                                      "Prezentowane dane bazują na badaniach polikrystalicznego panelu fotowoltaicznego o mocy 110W. W celu osiągnięcia optymalnych statystyk i wyników, uwzględniane są tylko odczyty uzyskane w godzinach 06:00 - 22:00.");
+                                                      "Prezentowane dane bazują na badaniach polikrystalicznego panelu fotowoltaicznego o mocy 110W. W celu osiągnięcia optymalnych statystyk i wyników, uwzględniane są tylko odczyty uzyskane w godzinach 07:00 - 21:00.");
                                             },
                                           );
                                         },

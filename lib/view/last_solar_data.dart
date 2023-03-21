@@ -29,7 +29,6 @@ class _LastSolarDataState extends State<LastSolarData> {
       listen: true,
       builder: (context, model) {
         _solarPanelResearchController = model;
-        // _solarPanelResearchController.setIsHistoricChartView = false;
         SolarDataModel lastSolarDataModel =
             _solarPanelResearchController.summaryModel.solarDataModel.last;
         return RefreshIndicator(
@@ -84,7 +83,7 @@ class _LastSolarDataState extends State<LastSolarData> {
                                           ),
                                           ...getLastInfoSingleData(
                                               "Data i godzina: ",
-                                              DateFormat("dd-MM-yyyy HH:mm")
+                                              DateFormat("dd.MM.yyyy HH:mm")
                                                   .format(lastSolarDataModel
                                                       .solarDate),
                                               Icons.date_range,

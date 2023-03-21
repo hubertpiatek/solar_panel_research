@@ -8,6 +8,7 @@ class SummaryModel {
   double averageCurrent;
   double averageTemperature;
   List<SolarDataModel> solarDataModel;
+
   SummaryModel(
       {required this.generatedPower,
       required this.averageVoltage,
@@ -26,11 +27,11 @@ class SummaryModel {
       try {
         await Future.forEach(solarDataList.values,
             (solarDataSingleModel) async {
-          //Tylko Dane Pomiędzy 6 i 21
+          //Tylko Dane Pomiędzy 7 i 21
           try {
             DateTime solarDate = DateFormat("dd-MM-yyyy hh:mm:ss")
                 .parse(solarDataSingleModel['dateAndTime'] ?? "");
-            if (solarDate.hour >= 6 && solarDate.hour <= 21) {
+            if (solarDate.hour >= 7 && solarDate.hour <= 20) {
               solarDataModel.add(SolarDataModel.fromJson(solarDataSingleModel));
             }
           } catch (_) {}

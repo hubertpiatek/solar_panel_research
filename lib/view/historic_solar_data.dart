@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:solar_panel_research/common/stats_dialog.dart';
 import 'package:solar_panel_research/consumer/solar_consumer.dart';
 import '../controller/solar_panel_research_controller.dart';
 import 'chart_view.dart';
@@ -27,7 +28,6 @@ class _HistoricSolarDataState extends State<HistoricSolarData> {
       listen: true,
       builder: (context, model) {
         _solarPanelResearchController = model;
-        // _solarPanelResearchController.setIsHistoricChartView = true;
         return RefreshIndicator(
           onRefresh: () async {
             await _solarPanelResearchController.getSummaryDataFromPanel(
@@ -125,8 +125,8 @@ class _HistoricSolarDataState extends State<HistoricSolarData> {
                                                   child: Text(value),
                                                 );
                                               }).toList(),
-                                              onChanged: (value) {
-                                                _solarPanelResearchController
+                                              onChanged: (value) async {
+                                                await _solarPanelResearchController
                                                     .changeHistoricChartPeriod(
                                                         value ?? "");
                                               },
@@ -152,9 +152,17 @@ class _HistoricSolarDataState extends State<HistoricSolarData> {
                                                     context);
                                               }),
                                               getSingleHistoricAction(
-                                                  "Statystyki",
-                                                  Icons.bar_chart,
-                                                  () {}),
+                                                  "Statystyki", Icons.bar_chart,
+                                                  () async {
+                                                await showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return StatsDialog(
+                                                        errorContent:
+                                                            "asd".toString());
+                                                  },
+                                                );
+                                              }),
                                             ],
                                           ),
                                         ],
@@ -203,7 +211,8 @@ class _HistoricSolarDataState extends State<HistoricSolarData> {
 
     if (pickedDate != null) {
       _solarPanelResearchController.chartModelHistoric.isPeriod = true;
-      _solarPanelResearchController.getHistoricDataCalendarFilter(pickedDate);
+      await _solarPanelResearchController
+          .getHistoricDataCalendarFilter(pickedDate);
     }
   }
 
@@ -222,7 +231,8 @@ class _HistoricSolarDataState extends State<HistoricSolarData> {
     );
     if (pickedDate != null) {
       _solarPanelResearchController.chartModelHistoric.isPeriod = false;
-      _solarPanelResearchController.getHistoricDataCalendarFilter(pickedDate);
+      await _solarPanelResearchController
+          .getHistoricDataCalendarFilter(pickedDate);
     }
   }
 

@@ -6,16 +6,11 @@ import 'package:weather/weather.dart';
 import '../common/error_alert_dialog.dart';
 import '../common/waiting_dialog.dart';
 import '../model/chart_model.dart';
+import '../model/stats_model.dart';
 import '../model/summary_model.dart';
 import 'package:geolocator/geolocator.dart';
 
-enum HistoricFilterTypes {
-  lastWeek,
-  lastMonth,
-  lastThreeMonths,
-  period,
-  singleDay
-}
+enum HistoricFilterTypes { lastWeek, lastMonth, lastThreeMonths }
 
 class SolarPanelResearchController extends ChangeNotifier {
   static const Map<HistoricFilterTypes, String> historicFilters = {
@@ -34,6 +29,7 @@ class SolarPanelResearchController extends ChangeNotifier {
   late bool _isAfterInit;
   late WeatherFactory _weatherFactory;
   late Position _userPosition;
+  late StatsModel _solarStatsModel;
   Weather? _weather;
 
   SolarPanelResearchController() {
@@ -76,6 +72,14 @@ class SolarPanelResearchController extends ChangeNotifier {
       generatedPower: 0.0,
       solarDataModel: [],
     );
+    _solarStatsModel = StatsModel(
+        generatedPower: 0.0,
+        averageVoltage: 0.0,
+        averageCurrent: 0.0,
+        averageTemperature: 0.0,
+        averageHumidity: 0,
+        averageLightIntensity: 0.0,
+        lastdirection: "");
     _actualSelectedHistoricPeriodFilter =
         historicFilters[HistoricFilterTypes.lastWeek]!;
     _isAfterInit = false;
@@ -99,6 +103,14 @@ class SolarPanelResearchController extends ChangeNotifier {
 
   set setChartModelLast(ChartModel chartModelLast) {
     _chartModelLast = chartModelLast;
+  }
+
+  StatsModel get solarStatsModel {
+    return _solarStatsModel;
+  }
+
+  set setSolarStatsModel(StatsModel solarStatsModel) {
+    _solarStatsModel = solarStatsModel;
   }
 
   bool get isHistoricChartView {
@@ -206,7 +218,7 @@ class SolarPanelResearchController extends ChangeNotifier {
             solarSingleData.solarDate.day ==
                 _summaryModel.solarDataModel.last.solarDate.day)
         .toList();
-    setSolarChartFilter(_chartModelLast.actualSelectedFilter,
+    await setSolarChartFilter(_chartModelLast.actualSelectedFilter,
         isHistoric: false);
 
     //Pobierz dane historyczne i pokaż na wykresie
@@ -226,7 +238,7 @@ class SolarPanelResearchController extends ChangeNotifier {
               .isAfter(_chartModelHistoric.selectedDate))
           .toList();
     }
-    setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
+    await setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
         isHistoric: true);
 
     setIsSummaryDataLoading = false;
@@ -261,7 +273,8 @@ class SolarPanelResearchController extends ChangeNotifier {
     }
   }
 
-  void setSolarChartFilter(String value, {required bool isHistoric}) {
+  Future<void> setSolarChartFilter(String value,
+      {required bool isHistoric}) async {
     ChartModel chartModel = isHistoric ? _chartModelHistoric : _chartModelLast;
     chartModel.actualSelectedFilter = value;
     List<FlSpot> chartFlSpotList = [];
@@ -278,7 +291,7 @@ class SolarPanelResearchController extends ChangeNotifier {
       switch (chartFilter) {
         case ChartFilterTypes.power:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 120;
+          chartModel.solarChartMaxYValue = 110;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -287,7 +300,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         case ChartFilterTypes.voltage:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 24;
+          chartModel.solarChartMaxYValue = 22;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -296,7 +309,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         case ChartFilterTypes.current:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 6;
+          chartModel.solarChartMaxYValue = 5.5;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -305,7 +318,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         case ChartFilterTypes.temperature:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 40;
+          chartModel.solarChartMaxYValue = 35;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -341,7 +354,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         default:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 120;
+          chartModel.solarChartMaxYValue = 110;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -349,6 +362,9 @@ class SolarPanelResearchController extends ChangeNotifier {
           }
           break;
       }
+    }
+    if (isHistoric) {
+      await getHistoricStats();
     }
     chartModel.chartFlSpotList = chartFlSpotList;
     if (isHistoric) {
@@ -359,7 +375,7 @@ class SolarPanelResearchController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeHistoricChartPeriod(String value) {
+  Future<void> changeHistoricChartPeriod(String value) async {
     _chartModelHistoric.xAxisText = value;
     _actualSelectedHistoricPeriodFilter = value;
     _chartModelHistoric.isPeriod = false;
@@ -378,14 +394,14 @@ class SolarPanelResearchController extends ChangeNotifier {
         {
           periodFilterDate = DateTime(
                   DateTime.now().year, DateTime.now().month, DateTime.now().day)
-              .subtract(const Duration(days: 31));
+              .subtract(const Duration(days: 30));
           break;
         }
       case HistoricFilterTypes.lastThreeMonths:
         {
           periodFilterDate = DateTime(
                   DateTime.now().year, DateTime.now().month, DateTime.now().day)
-              .subtract(const Duration(days: 92));
+              .subtract(const Duration(days: 91));
           break;
         }
       default:
@@ -402,21 +418,21 @@ class SolarPanelResearchController extends ChangeNotifier {
         .where((solarSingleData) =>
             solarSingleData.solarDate.isAfter(periodFilterDate))
         .toList();
-    setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
+    await setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
         isHistoric: true);
   }
 
-  void getHistoricDataCalendarFilter(DateTime date) {
+  Future<void> getHistoricDataCalendarFilter(DateTime date) async {
     if (_chartModelHistoric.isPeriod) {
       _chartModelHistoric.isDateSingleDay = false;
       _chartModelHistoric.xAxisText =
-          "${DateFormat("dd-MM-yyyy").format(date)} - ${DateFormat("dd-MM-yyyy").format(DateTime.now())}";
+          "${DateFormat("dd.MM.yyyy").format(date)} - ${DateFormat("dd.MM.yyyy").format(DateTime.now())}";
       _chartModelHistoric.chartData = _summaryModel.solarDataModel
           .where((solarSingleData) => solarSingleData.solarDate.isAfter(date))
           .toList();
     } else {
       _chartModelHistoric.isDateSingleDay = true;
-      _chartModelHistoric.xAxisText = DateFormat("dd-MM-yyyy").format(date);
+      _chartModelHistoric.xAxisText = DateFormat("dd.MM.yyyy").format(date);
       _chartModelHistoric.chartData = _summaryModel.solarDataModel
           .where((solarSingleData) =>
               solarSingleData.solarDate.year == date.year &&
@@ -426,8 +442,59 @@ class SolarPanelResearchController extends ChangeNotifier {
     }
     _chartModelHistoric.selectedDate = date;
 
-    setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
+    await setSolarChartFilter(_chartModelHistoric.actualSelectedFilter,
         isHistoric: true);
+  }
+
+  Future<void> getHistoricStats() async {
+    _solarStatsModel = StatsModel(
+        generatedPower: 0.0,
+        averageVoltage: 0.0,
+        averageCurrent: 0.0,
+        averageTemperature: 0.0,
+        averageHumidity: 0,
+        averageLightIntensity: 0.0,
+        lastdirection: "");
+    if (_chartModelHistoric.chartData.isNotEmpty) {
+      await Future.forEach(_chartModelHistoric.chartData, (solarDataModel) {
+        _solarStatsModel.generatedPower += solarDataModel.power;
+        _solarStatsModel.averageVoltage += solarDataModel.voltage;
+        _solarStatsModel.averageCurrent += solarDataModel.current;
+        _solarStatsModel.averageHumidity += solarDataModel.humidity;
+        _solarStatsModel.averageTemperature += solarDataModel.temperature;
+        _solarStatsModel.averageLightIntensity += solarDataModel.lightIntensity;
+      });
+      _solarStatsModel.lastdirection =
+          _chartModelHistoric.chartData.last.direction;
+      _solarStatsModel.averageVoltage = double.parse(
+          (_solarStatsModel.averageVoltage /
+                  _chartModelHistoric.chartData.length)
+              .toStringAsFixed(2));
+      _solarStatsModel.averageCurrent = double.parse(
+          (_solarStatsModel.averageCurrent /
+                  _chartModelHistoric.chartData.length)
+              .toStringAsFixed(2));
+      _solarStatsModel.averageHumidity = int.parse(
+          (_solarStatsModel.averageHumidity /
+                  _chartModelHistoric.chartData.length)
+              .toStringAsFixed(0));
+      _solarStatsModel.averageTemperature = double.parse(
+          (_solarStatsModel.averageTemperature /
+                  _chartModelHistoric.chartData.length)
+              .toStringAsFixed(2));
+      _solarStatsModel.averageLightIntensity = double.parse(
+          (_solarStatsModel.averageLightIntensity /
+                  _chartModelHistoric.chartData.length)
+              .toStringAsFixed(2));
+
+      //6 Liczba odczytów panelu na godzinę
+      //1000 - przeliczenie Wh na kWh
+      _solarStatsModel.generatedPower = double.parse(
+          (_solarStatsModel.generatedPower /
+                  SummaryModel.solarPanelSavesPerMinute /
+                  1000)
+              .toStringAsFixed(3));
+    }
   }
 
   Future<void> getUserPositionForWeather() async {

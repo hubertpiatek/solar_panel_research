@@ -29,10 +29,7 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.indigo.shade500.withOpacity(0.7),
-      //backgroundColor: Colors.blue.shade800.withOpacity(0.7),
-      // backgroundColor: Colors.blue.shade500.withOpacity(0.8),
-      backgroundColor: Colors.blue.shade700,
+      backgroundColor: const Color.fromRGBO(58, 133, 255, 1),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
             color: Colors.black12.withOpacity(0.05),
@@ -82,7 +79,6 @@ class _HomePageState extends State<HomePage>
       ),
       appBar: AppBar(
         backgroundColor: Colors.blue.shade700,
-        //backgroundColor: Colors.grey.shade600,
         title: const Text("Badania Panelu Fotowoltaicznego"),
       ),
       body: TabBarView(
