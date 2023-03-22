@@ -69,7 +69,7 @@ class _ChartViewState extends State<ChartView> {
                         axisNameSize: 30,
                         sideTitles: SideTitles(
                           showTitles: true,
-                          interval: 1,
+                          interval: getInterval(),
                           getTitlesWidget: (value, meta) {
                             return getXAxisTextForChart(value, meta);
                           },
@@ -233,79 +233,37 @@ class _ChartViewState extends State<ChartView> {
   Widget getXAxisTextForChart(double value, TitleMeta meta) {
     var hour =
         DateTime.fromMillisecondsSinceEpoch((value * 100000).toInt()).hour;
-    switch (meta.axisPosition.toInt()) {
-      case 1:
-        if (!widget.isHistoricView ||
-            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-          return Text(hour.toString());
-        } else if (widget.isHistoricView &&
-            _solarPanelResearchController.chartModelHistoric.isPeriod) {
-          return const Text("");
-        } else {
-          return getTextForPeriodFilter(value);
-        }
-      case 50:
-        if (!widget.isHistoricView ||
-            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-          return Text(hour.toString());
-        } else if (widget.isHistoricView &&
-            _solarPanelResearchController.chartModelHistoric.isPeriod) {
-          return const Text("");
-        } else {
-          return getTextForPeriodFilter(value);
-        }
-      case 100:
-        if (!widget.isHistoricView ||
-            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-          return Text(hour.toString());
-        } else if (widget.isHistoricView &&
-            _solarPanelResearchController.chartModelHistoric.isPeriod) {
-          return const Text("");
-        } else {
-          return getTextForPeriodFilter(value);
-        }
-      case 150:
-        if (!widget.isHistoricView ||
-            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-          return Text(hour.toString());
-        } else if (widget.isHistoricView &&
-            _solarPanelResearchController.chartModelHistoric.isPeriod) {
-          return const Text("");
-        } else {
-          return getTextForPeriodFilter(value);
-        }
-      case 200:
-        if (!widget.isHistoricView ||
-            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-          return Text(hour.toString());
-        } else if (widget.isHistoricView &&
-            _solarPanelResearchController.chartModelHistoric.isPeriod) {
-          return const Text("");
-        } else {
-          return getTextForPeriodFilter(value);
-        }
-      case 250:
-        if (!widget.isHistoricView ||
-            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-          return Text(hour.toString());
-        } else if (widget.isHistoricView &&
-            _solarPanelResearchController.chartModelHistoric.isPeriod) {
-          return const Text("");
-        } else {
-          return getTextForPeriodFilter(value);
-        }
-      case 280:
-        if (!widget.isHistoricView ||
-            _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-          return Text(hour.toString());
-        } else if (widget.isHistoricView &&
-            _solarPanelResearchController.chartModelHistoric.isPeriod) {
-          return const Text("");
-        } else {
-          return getTextForPeriodFilter(value);
-        }
-      default:
-        return const Text("");
+    if (!widget.isHistoricView ||
+        _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+      return Text(hour.toString());
+    } else if (widget.isHistoricView &&
+        _solarPanelResearchController.chartModelHistoric.isPeriod) {
+      return const Text("");
+    } else {
+      return getTextForPeriodFilter(value);
+    }
+  }
+
+  double getInterval() {
+    if (_solarPanelResearchController
+        .chartModelHistoric.chartFlSpotList.isNotEmpty) {
+      double minX = widget.isHistoricView
+          ? _solarPanelResearchController.chartModelHistoric.solarChartMinXValue
+          : _solarPanelResearchController.chartModelLast.solarChartMinXValue;
+
+      double maxX = widget.isHistoricView
+          ? _solarPanelResearchController.chartModelHistoric.solarChartMaxXValue
+          : _solarPanelResearchController.chartModelLast.solarChartMaxXValue;
+      if (!widget.isHistoricView ||
+          _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+        return (maxX - minX) / 4.2;
+      } else if (widget.isHistoricView &&
+          _solarPanelResearchController.chartModelHistoric.isPeriod) {
+        return (maxX - minX) / 5;
+      }
+      return (maxX - minX) / 2.7;
+    } else {
+      return 100;
     }
   }
 }
