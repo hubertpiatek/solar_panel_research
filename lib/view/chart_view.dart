@@ -233,6 +233,9 @@ class _ChartViewState extends State<ChartView> {
   Widget getXAxisTextForChart(double value, TitleMeta meta) {
     var hour =
         DateTime.fromMillisecondsSinceEpoch((value * 100000).toInt()).hour;
+    if (meta.min == value || meta.max == value) {
+      return const Text("");
+    }
     if (!widget.isHistoricView ||
         _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
       return Text(hour.toString());
@@ -250,18 +253,10 @@ class _ChartViewState extends State<ChartView> {
       double minX = widget.isHistoricView
           ? _solarPanelResearchController.chartModelHistoric.solarChartMinXValue
           : _solarPanelResearchController.chartModelLast.solarChartMinXValue;
-
       double maxX = widget.isHistoricView
           ? _solarPanelResearchController.chartModelHistoric.solarChartMaxXValue
           : _solarPanelResearchController.chartModelLast.solarChartMaxXValue;
-      if (!widget.isHistoricView ||
-          _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
-        return (maxX - minX) / 4.2;
-      } else if (widget.isHistoricView &&
-          _solarPanelResearchController.chartModelHistoric.isPeriod) {
-        return (maxX - minX) / 5;
-      }
-      return (maxX - minX) / 2.7;
+      return (maxX - minX) / 5.7;
     } else {
       return 100;
     }
