@@ -30,7 +30,7 @@ class SolarDataModel {
     double power = double.tryParse(basicPower.toStringAsFixed(2)) ?? 0.0;
     return SolarDataModel(
       solarDate:
-          DateFormat("dd-MM-yyyy hh:mm:ss").parse(json['dateAndTime'] ?? ""),
+          DateFormat("dd-MM-yyyy HH:mm:ss").parse(json['dateAndTime'] ?? ""),
       power: power,
       voltage: voltage,
       current: current,

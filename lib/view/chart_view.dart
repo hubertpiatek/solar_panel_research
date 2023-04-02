@@ -111,7 +111,7 @@ class _ChartViewState extends State<ChartView> {
                         );
                       },
                     ),
-                    borderData: FlBorderData(show: true),
+                    borderData: FlBorderData(show: false),
                     lineBarsData: [
                       widget.isHistoricView
                           ? LineChartBarData(
@@ -119,10 +119,13 @@ class _ChartViewState extends State<ChartView> {
                                 ..._solarPanelResearchController
                                     .chartModelHistoric.chartFlSpotList
                               ],
-                              barWidth: 4,
+                              barWidth: 3,
                               color: Colors.yellow.shade700,
+                              curveSmoothness: 0.2,
                               isCurved: true,
                               dotData: FlDotData(show: false),
+                              preventCurveOverShooting: true,
+                              preventCurveOvershootingThreshold: 2,
                               belowBarData: BarAreaData(
                                   show: true,
                                   color: Colors.blue.withOpacity(0.4)),
@@ -132,10 +135,12 @@ class _ChartViewState extends State<ChartView> {
                                 ..._solarPanelResearchController
                                     .chartModelLast.chartFlSpotList
                               ],
-                              barWidth: 4,
+                              barWidth: 3,
+                              curveSmoothness: 0.2,
                               color: Colors.yellow.shade700,
                               isCurved: true,
                               dotData: FlDotData(show: false),
+                              preventCurveOverShooting: true,
                               belowBarData: BarAreaData(
                                   show: true,
                                   color: Colors.blue.withOpacity(0.4)),

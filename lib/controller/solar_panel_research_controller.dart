@@ -291,7 +291,7 @@ class SolarPanelResearchController extends ChangeNotifier {
       switch (chartFilter) {
         case ChartFilterTypes.power:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 110;
+          chartModel.solarChartMaxYValue = 120;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -300,7 +300,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         case ChartFilterTypes.voltage:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 22;
+          chartModel.solarChartMaxYValue = 23;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -317,7 +317,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           }
           break;
         case ChartFilterTypes.temperature:
-          chartModel.solarChartMinYValue = 0;
+          chartModel.solarChartMinYValue = -5;
           chartModel.solarChartMaxYValue = 35;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
@@ -354,7 +354,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         default:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 110;
+          chartModel.solarChartMaxYValue = 120;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,

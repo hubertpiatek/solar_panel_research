@@ -27,10 +27,10 @@ class SummaryModel {
       try {
         await Future.forEach(solarDataList.values,
             (solarDataSingleModel) async {
-          //Tylko Dane Pomiędzy 7 i 21
           try {
-            DateTime solarDate = DateFormat("dd-MM-yyyy hh:mm:ss")
+            DateTime solarDate = DateFormat("dd-MM-yyyy HH:mm:ss")
                 .parse(solarDataSingleModel['dateAndTime'] ?? "");
+            //Tylko Dane Pomiędzy 7 i 21
             if (solarDate.hour >= 7 && solarDate.hour <= 20) {
               solarDataModel.add(SolarDataModel.fromJson(solarDataSingleModel));
             }
