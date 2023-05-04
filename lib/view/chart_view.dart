@@ -41,16 +41,13 @@ class _ChartViewState extends State<ChartView> {
                       show: true,
                       rightTitles: AxisTitles(),
                       topTitles: AxisTitles(),
-                      // leftTitles: AxisTitles(
-                      //     axisNameWidget: Container(
-                      //       margin: const EdgeInsets.only(left: 40),
-                      //       child: Text(_solarPanelResearchController
-                      //           .chartModelHistoric.actualSelectedFilter),
-                      //     ),
-                      //     drawBehindEverything: true,
-                      //     axisNameSize: 24,
-                      //     sideTitles:
-                      //         SideTitles(reservedSize: 26, showTitles: true)),
+                      leftTitles: AxisTitles(
+                          drawBehindEverything: true,
+                          sideTitles: SideTitles(
+                            reservedSize: 40,
+                            showTitles: true,
+                            interval: getIntervalForYAxis(),
+                          )),
                       bottomTitles: AxisTitles(
                         axisNameWidget: Container(
                             margin: widget.isHistoricView
@@ -264,6 +261,35 @@ class _ChartViewState extends State<ChartView> {
       return (maxX - minX) / 5.7;
     } else {
       return 100;
+    }
+  }
+
+  double? getIntervalForYAxis() {
+    ChartFilterTypes chartFilter = ChartModel.chartFilterInfo.keys.firstWhere(
+        (key) =>
+            ChartModel.chartFilterInfo[key] ==
+            (widget.isHistoricView
+                ? _solarPanelResearchController
+                    .chartModelHistoric.actualSelectedFilter
+                : _solarPanelResearchController
+                    .chartModelLast.actualSelectedFilter));
+    switch (chartFilter) {
+      case ChartFilterTypes.power:
+        return 20;
+      case ChartFilterTypes.voltage:
+        return 4;
+      case ChartFilterTypes.current:
+        return 1;
+      case ChartFilterTypes.temperature:
+        return 10;
+      case ChartFilterTypes.humidity:
+        return 20;
+      case ChartFilterTypes.lightIntensity:
+        return 10000;
+      case ChartFilterTypes.angle:
+        return 10;
+      default:
+        return null;
     }
   }
 }

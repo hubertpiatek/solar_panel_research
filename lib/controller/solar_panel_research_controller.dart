@@ -291,7 +291,7 @@ class SolarPanelResearchController extends ChangeNotifier {
       switch (chartFilter) {
         case ChartFilterTypes.power:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 120;
+          chartModel.solarChartMaxYValue = 130;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -309,7 +309,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         case ChartFilterTypes.current:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 5.5;
+          chartModel.solarChartMaxYValue = 6.0;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -318,7 +318,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         case ChartFilterTypes.temperature:
           chartModel.solarChartMinYValue = -5;
-          chartModel.solarChartMaxYValue = 35;
+          chartModel.solarChartMaxYValue = 50;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -336,7 +336,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         case ChartFilterTypes.lightIntensity:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 65000;
+          chartModel.solarChartMaxYValue = 57000;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
@@ -354,7 +354,7 @@ class SolarPanelResearchController extends ChangeNotifier {
           break;
         default:
           chartModel.solarChartMinYValue = 0;
-          chartModel.solarChartMaxYValue = 120;
+          chartModel.solarChartMaxYValue = 130;
           for (var singleSolarData in chartModel.chartData) {
             chartFlSpotList.add(FlSpot(
                 singleSolarData.solarDate.millisecondsSinceEpoch / 100000,
