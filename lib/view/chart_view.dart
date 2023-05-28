@@ -44,7 +44,7 @@ class _ChartViewState extends State<ChartView> {
                       leftTitles: AxisTitles(
                           drawBehindEverything: true,
                           sideTitles: SideTitles(
-                            reservedSize: 40,
+                            reservedSize: 45,
                             showTitles: true,
                             interval: getIntervalForYAxis(),
                           )),
@@ -55,10 +55,8 @@ class _ChartViewState extends State<ChartView> {
                                 : const EdgeInsets.fromLTRB(30, 12, 0, 0),
                             child: Text(
                               widget.isHistoricView
-                                  ? _solarPanelResearchController
-                                      .chartModelHistoric.xAxisText
-                                  : _solarPanelResearchController
-                                      .chartModelLast.xAxisText,
+                                  ? ChartModel.chartAxisModelHistoric.xAxisText
+                                  : ChartModel.chartAxisModelLast.xAxisText,
                               style: const TextStyle(
                                   fontSize: 16, color: Colors.black54),
                             )),
@@ -66,82 +64,41 @@ class _ChartViewState extends State<ChartView> {
                         axisNameSize: 30,
                         sideTitles: SideTitles(
                           showTitles: true,
-                          interval: getInterval(),
+                          //  interval: getInterval(),
                           getTitlesWidget: (value, meta) {
                             return getXAxisTextForChart(value, meta);
                           },
                         ),
                       ),
                     ),
-                    minX: widget.isHistoricView
-                        ? _solarPanelResearchController
-                            .chartModelHistoric.solarChartMinXValue
-                        : _solarPanelResearchController
-                            .chartModelLast.solarChartMinXValue,
-                    maxX: widget.isHistoricView
-                        ? _solarPanelResearchController
-                            .chartModelHistoric.solarChartMaxXValue
-                        : _solarPanelResearchController
-                            .chartModelLast.solarChartMaxXValue,
+                    minX: _solarPanelResearchController.minXValueForChart(
+                        isHistoric: widget.isHistoricView),
+                    maxX: _solarPanelResearchController.maxXValueForChart(
+                        isHistoric: widget.isHistoricView),
                     minY: widget.isHistoricView
-                        ? _solarPanelResearchController
-                            .chartModelHistoric.solarChartMinYValue
-                        : _solarPanelResearchController
-                            .chartModelLast.solarChartMinYValue,
+                        ? ChartModel.chartAxisModelHistoric.solarChartMinYValue
+                        : ChartModel.chartAxisModelLast.solarChartMinYValue,
                     maxY: widget.isHistoricView
-                        ? _solarPanelResearchController
-                            .chartModelHistoric.solarChartMaxYValue
-                        : _solarPanelResearchController
-                            .chartModelLast.solarChartMaxYValue,
+                        ? ChartModel.chartAxisModelHistoric.solarChartMaxYValue
+                        : ChartModel.chartAxisModelLast.solarChartMaxYValue,
                     gridData: FlGridData(
                       show: true,
                       getDrawingHorizontalLine: (value) {
                         return FlLine(
                           color: Colors.blue.shade500,
-                          strokeWidth: 1,
+                          strokeWidth: 0.7,
                         );
                       },
                       getDrawingVerticalLine: (value) {
                         return FlLine(
                           color: Colors.blue.shade500,
-                          strokeWidth: 1,
+                          strokeWidth: 0.7,
                         );
                       },
                     ),
                     borderData: FlBorderData(show: false),
                     lineBarsData: [
-                      widget.isHistoricView
-                          ? LineChartBarData(
-                              spots: [
-                                ..._solarPanelResearchController
-                                    .chartModelHistoric.chartFlSpotList
-                              ],
-                              barWidth: 3,
-                              color: Colors.yellow.shade700,
-                              curveSmoothness: 0.2,
-                              isCurved: true,
-                              dotData: FlDotData(show: false),
-                              preventCurveOverShooting: true,
-                              preventCurveOvershootingThreshold: 2,
-                              belowBarData: BarAreaData(
-                                  show: true,
-                                  color: Colors.blue.withOpacity(0.4)),
-                            )
-                          : LineChartBarData(
-                              spots: [
-                                ..._solarPanelResearchController
-                                    .chartModelLast.chartFlSpotList
-                              ],
-                              barWidth: 3,
-                              curveSmoothness: 0.2,
-                              color: Colors.yellow.shade700,
-                              isCurved: true,
-                              dotData: FlDotData(show: false),
-                              preventCurveOverShooting: true,
-                              belowBarData: BarAreaData(
-                                  show: true,
-                                  color: Colors.blue.withOpacity(0.4)),
-                            )
+                      ...getLineBarsData(),
                     ]),
               ),
             ),
@@ -159,10 +116,8 @@ class _ChartViewState extends State<ChartView> {
                 alignment: AlignmentDirectional.center,
                 hint: Text(
                   widget.isHistoricView
-                      ? _solarPanelResearchController
-                          .chartModelHistoric.actualSelectedFilter
-                      : _solarPanelResearchController
-                          .chartModelLast.actualSelectedFilter,
+                      ? ChartModel.chartAxisModelHistoric.actualSelectedFilter
+                      : ChartModel.chartAxisModelLast.actualSelectedFilter,
                   textAlign: TextAlign.center,
                 ),
                 items: ChartModel.chartFilterInfo.values.map((String value) {
@@ -239,10 +194,10 @@ class _ChartViewState extends State<ChartView> {
       return const Text("");
     }
     if (!widget.isHistoricView ||
-        _solarPanelResearchController.chartModelHistoric.isDateSingleDay) {
+        ChartModel.chartAxisModelHistoric.isDateSingleDay) {
       return Text(hour.toString());
     } else if (widget.isHistoricView &&
-        _solarPanelResearchController.chartModelHistoric.isPeriod) {
+        ChartModel.chartAxisModelHistoric.isPeriod) {
       return const Text("");
     } else {
       return getTextForPeriodFilter(value);
@@ -250,18 +205,17 @@ class _ChartViewState extends State<ChartView> {
   }
 
   double getInterval() {
-    if (_solarPanelResearchController
-        .chartModelHistoric.chartFlSpotList.isNotEmpty) {
-      double minX = widget.isHistoricView
-          ? _solarPanelResearchController.chartModelHistoric.solarChartMinXValue
-          : _solarPanelResearchController.chartModelLast.solarChartMinXValue;
-      double maxX = widget.isHistoricView
-          ? _solarPanelResearchController.chartModelHistoric.solarChartMaxXValue
-          : _solarPanelResearchController.chartModelLast.solarChartMaxXValue;
-      return (maxX - minX) / 5.7;
-    } else {
-      return 100;
+    double minX = widget.isHistoricView
+        ? ChartModel.chartAxisModelHistoric.solarChartMinXValue
+        : ChartModel.chartAxisModelLast.solarChartMinXValue;
+    double maxX = widget.isHistoricView
+        ? ChartModel.chartAxisModelHistoric.solarChartMaxXValue
+        : ChartModel.chartAxisModelLast.solarChartMaxXValue;
+    double interval = (maxX - minX) / 5.7;
+    if (interval == 0.0) {
+      return 70;
     }
+    return (maxX - minX) / 5.7;
   }
 
   double? getIntervalForYAxis() {
@@ -269,10 +223,8 @@ class _ChartViewState extends State<ChartView> {
         (key) =>
             ChartModel.chartFilterInfo[key] ==
             (widget.isHistoricView
-                ? _solarPanelResearchController
-                    .chartModelHistoric.actualSelectedFilter
-                : _solarPanelResearchController
-                    .chartModelLast.actualSelectedFilter));
+                ? ChartModel.chartAxisModelHistoric.actualSelectedFilter
+                : ChartModel.chartAxisModelLast.actualSelectedFilter));
     switch (chartFilter) {
       case ChartFilterTypes.power:
         return 20;
@@ -291,5 +243,50 @@ class _ChartViewState extends State<ChartView> {
       default:
         return null;
     }
+  }
+
+  List<LineChartBarData> getLineBarsData() {
+    List<LineChartBarData> lineBarsData = [];
+    SolarPanelResearchController.enabledPanels.forEach((index, isEnabled) {
+      if (isEnabled) {
+        if (widget.isHistoricView) {
+          lineBarsData.add(LineChartBarData(
+            spots: [
+              ..._solarPanelResearchController
+                  .chartModelHistoric[index].chartFlSpotList,
+            ],
+            barWidth: 2,
+            color: SolarPanelResearchController.chartLinesColors[index],
+            curveSmoothness: 0.1,
+            isCurved: true,
+            dotData: FlDotData(show: false),
+            preventCurveOverShooting: true,
+            preventCurveOvershootingThreshold: 2,
+            belowBarData: BarAreaData(
+                show: true,
+                color: SolarPanelResearchController.chartColors[index]),
+          ));
+        } else {
+          lineBarsData.add(LineChartBarData(
+            spots: [
+              ..._solarPanelResearchController
+                  .chartModelLast[index].chartFlSpotList,
+            ],
+            barWidth: 2,
+            color: SolarPanelResearchController.chartLinesColors[index],
+            curveSmoothness: 0.1,
+            isCurved: true,
+            dotData: FlDotData(show: false),
+            preventCurveOverShooting: true,
+            preventCurveOvershootingThreshold: 2,
+            belowBarData: BarAreaData(
+                show: true,
+                color: SolarPanelResearchController.chartColors[index]),
+          ));
+        }
+      }
+    });
+
+    return lineBarsData;
   }
 }

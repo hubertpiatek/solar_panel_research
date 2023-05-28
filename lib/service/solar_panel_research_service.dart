@@ -5,10 +5,10 @@ import '../model/summary_model.dart';
 
 class SolarPanelResearchService {
   final solarDb = FirebaseDatabase.instance.ref();
-  Future<SummaryModel> getSummaryData() async {
+  Future<SummaryModel> getSummaryData(String endpoint) async {
     try {
       final DataSnapshot summarySolarData = await solarDb
-          .child("solarDataFromSunFinal")
+          .child(endpoint)
           .get()
           .timeout(const Duration(seconds: 15));
       if (summarySolarData.exists) {

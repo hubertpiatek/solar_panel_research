@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:solar_panel_research/common/stats_dialog.dart';
 import 'package:solar_panel_research/consumer/solar_consumer.dart';
 import '../controller/solar_panel_research_controller.dart';
+import '../model/chart_model.dart';
 import 'chart_view.dart';
 
 class HistoricSolarData extends StatefulWidget {
@@ -210,7 +211,7 @@ class _HistoricSolarDataState extends State<HistoricSolarData> {
     );
 
     if (pickedDate != null) {
-      _solarPanelResearchController.chartModelHistoric.isPeriod = true;
+      ChartModel.chartAxisModelHistoric.isPeriod = true;
       await _solarPanelResearchController
           .getHistoricDataCalendarFilter(pickedDate);
     }
@@ -230,7 +231,7 @@ class _HistoricSolarDataState extends State<HistoricSolarData> {
       },
     );
     if (pickedDate != null) {
-      _solarPanelResearchController.chartModelHistoric.isPeriod = false;
+      ChartModel.chartAxisModelHistoric.isPeriod = false;
       await _solarPanelResearchController
           .getHistoricDataCalendarFilter(pickedDate);
     }

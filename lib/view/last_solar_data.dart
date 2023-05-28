@@ -13,14 +13,26 @@ class LastSolarData extends StatefulWidget {
   State<LastSolarData> createState() => _LastSolarDataState();
 }
 
-class _LastSolarDataState extends State<LastSolarData> {
+class _LastSolarDataState extends State<LastSolarData>
+    with TickerProviderStateMixin {
   late SolarPanelResearchController _solarPanelResearchController;
+  late TabController controller;
 
   @override
   void initState() {
+    super.initState();
     _solarPanelResearchController =
         context.read<SolarPanelResearchController>();
-    super.initState();
+    controller = TabController(
+      length: SolarPanelResearchController.getEnabledPanelsAmount(),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -29,8 +41,10 @@ class _LastSolarDataState extends State<LastSolarData> {
       listen: true,
       builder: (context, model) {
         _solarPanelResearchController = model;
-        SolarDataModel lastSolarDataModel =
-            _solarPanelResearchController.summaryModel.solarDataModel.last;
+        controller = TabController(
+          length: SolarPanelResearchController.getEnabledPanelsAmount(),
+          vsync: this,
+        );
         return RefreshIndicator(
           onRefresh: () async {
             await _solarPanelResearchController.getSummaryDataFromPanel(
@@ -59,72 +73,22 @@ class _LastSolarDataState extends State<LastSolarData> {
                                   ? const Center(
                                       child: CircularProgressIndicator(),
                                     )
-                                  : Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12.0, vertical: 10),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: const [
-                                              Text(
-                                                "Ostatni odczyt z panelu",
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    fontSize: 17,
-                                                    color: Colors.black54),
-                                              ),
-                                            ],
+                                  : Column(
+                                      children: [
+                                        Expanded(
+                                          child: TabBarView(
+                                            controller: controller,
+                                            children: [...getLastSolarInfo()],
                                           ),
-                                          ...getLastInfoSingleData(
-                                              "Data i godzina: ",
-                                              DateFormat("dd.MM.yyyy HH:mm")
-                                                  .format(lastSolarDataModel
-                                                      .solarDate),
-                                              Icons.date_range,
-                                              Colors.blue),
-                                          ...getLastInfoSingleData(
-                                              "Moc:",
-                                              "${lastSolarDataModel.power} W",
-                                              Icons.solar_power_outlined,
-                                              Colors.green),
-                                          ...getLastInfoSingleData(
-                                              "Napięcie:",
-                                              "${lastSolarDataModel.voltage} V",
-                                              Icons.power_outlined,
-                                              Colors.yellow.shade800),
-                                          ...getLastInfoSingleData(
-                                              "Natężenie:",
-                                              "${lastSolarDataModel.current} A",
-                                              Icons.electric_meter_outlined,
-                                              Colors.red),
-                                          ...getLastInfoSingleData(
-                                              "Temperatura / Wilgotność:",
-                                              "${lastSolarDataModel.temperature} °C / ${lastSolarDataModel.humidity}%",
-                                              Icons.sunny_snowing,
-                                              Colors.blue),
-                                          ...getLastInfoSingleData(
-                                              "Intensywność światła:",
-                                              "${lastSolarDataModel.lightIntensity} lux",
-                                              Icons.lightbulb_outline,
-                                              Colors.yellow.shade700),
-                                          ...getLastInfoSingleData(
-                                              "Kierunek:",
-                                              lastSolarDataModel.direction,
-                                              Icons.north_east,
-                                              Colors.blue),
-                                          ...getLastInfoSingleData(
-                                              "Kąt panelu:",
-                                              "${lastSolarDataModel.solarAngle}°",
-                                              Icons.perm_data_setting_outlined,
-                                              Colors.blue),
-                                        ],
-                                      ),
+                                        ),
+                                        Container(
+                                          height: 25,
+                                          alignment: Alignment.center,
+                                          child: TabPageSelector(
+                                            controller: controller,
+                                          ),
+                                        )
+                                      ],
                                     ),
                             ),
                           ),
@@ -153,11 +117,104 @@ class _LastSolarDataState extends State<LastSolarData> {
     );
   }
 
+  List<Widget> getLastSolarInfo() {
+    List<Widget> lastSolarInfoList = [];
+
+    SolarPanelResearchController.enabledPanels.forEach((index, isEnabled) {
+      bool noData = false;
+      if (isEnabled) {
+        late SolarDataModel lastSolarDataModel;
+        try {
+          lastSolarDataModel = _solarPanelResearchController
+              .chartModelLast[index].chartData.last;
+        } catch (_) {
+          noData = true;
+        }
+
+        lastSolarInfoList.add(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "${SolarPanelResearchController.listOfPanels[index]}",
+                      textAlign: TextAlign.center,
+                      style:
+                          const TextStyle(fontSize: 16, color: Colors.black54),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 3,
+                ),
+                ...getLastInfoSingleData(
+                    "Data i godzina: ",
+                    noData
+                        ? "Brak danych"
+                        : DateFormat("dd.MM.yyyy HH:mm")
+                            .format(lastSolarDataModel.solarDate),
+                    Icons.date_range,
+                    Colors.blue),
+                ...getLastInfoSingleData(
+                    "Moc:",
+                    noData ? "Brak danych" : "${lastSolarDataModel.power} W",
+                    Icons.solar_power_outlined,
+                    Colors.green),
+                ...getLastInfoSingleData(
+                    "Napięcie:",
+                    noData ? "Brak danych" : "${lastSolarDataModel.voltage} V",
+                    Icons.power_outlined,
+                    Colors.yellow.shade800),
+                ...getLastInfoSingleData(
+                    "Natężenie:",
+                    noData ? "Brak danych" : "${lastSolarDataModel.current} A",
+                    Icons.electric_meter_outlined,
+                    Colors.red),
+                ...getLastInfoSingleData(
+                    "Temperatura / Wilgotność:",
+                    noData
+                        ? "Brak danych"
+                        : "${lastSolarDataModel.temperature} °C / ${lastSolarDataModel.humidity}%",
+                    Icons.sunny_snowing,
+                    Colors.blue),
+                ...getLastInfoSingleData(
+                    "Intensywność światła:",
+                    noData
+                        ? "Brak danych"
+                        : "${lastSolarDataModel.lightIntensity} lux",
+                    Icons.lightbulb_outline,
+                    Colors.yellow.shade700),
+                ...getLastInfoSingleData(
+                    "Kierunek:",
+                    noData ? "Brak danych" : lastSolarDataModel.direction,
+                    Icons.north_east,
+                    Colors.blue),
+                ...getLastInfoSingleData(
+                    "Kąt panelu:",
+                    noData
+                        ? "Brak danych"
+                        : "${lastSolarDataModel.solarAngle}°",
+                    Icons.perm_data_setting_outlined,
+                    Colors.blue),
+              ],
+            ),
+          ),
+        );
+      }
+    });
+    return lastSolarInfoList;
+  }
+
   List<Widget> getLastInfoSingleData(
       String title, String content, IconData icon, Color color) {
     return [
       const SizedBox(
-        height: 7,
+        height: 4,
       ),
       Row(
         children: [
