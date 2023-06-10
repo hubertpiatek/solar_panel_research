@@ -32,7 +32,7 @@ class SolarPanelApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SolarPanelResearchController()),
       ],
       child: MaterialApp(
-          title: "Badania Panelu Fotowoltaicznego",
+          title: "Badania Paneli Fotowoltaicznych",
           localizationsDelegates: const [GlobalMaterialLocalizations.delegate],
           supportedLocales: const [
             Locale('en', "EN"),

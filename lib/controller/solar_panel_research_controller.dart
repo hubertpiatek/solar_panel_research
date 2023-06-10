@@ -460,10 +460,10 @@ class SolarPanelResearchController extends ChangeNotifier {
           case ChartFilterTypes.voltage:
             if (isHistoric) {
               ChartModel.chartAxisModelHistoric.solarChartMinYValue = 0.0;
-              ChartModel.chartAxisModelHistoric.solarChartMaxYValue = 23.0;
+              ChartModel.chartAxisModelHistoric.solarChartMaxYValue = 20.0;
             } else {
               ChartModel.chartAxisModelLast.solarChartMinYValue = 0.0;
-              ChartModel.chartAxisModelLast.solarChartMaxYValue = 23.0;
+              ChartModel.chartAxisModelLast.solarChartMaxYValue = 20.0;
             }
             for (var singleSolarData in chartModel.chartData) {
               chartFlSpotList.add(FlSpot(
@@ -474,10 +474,10 @@ class SolarPanelResearchController extends ChangeNotifier {
           case ChartFilterTypes.current:
             if (isHistoric) {
               ChartModel.chartAxisModelHistoric.solarChartMinYValue = 0.0;
-              ChartModel.chartAxisModelHistoric.solarChartMaxYValue = 6.0;
+              ChartModel.chartAxisModelHistoric.solarChartMaxYValue = 4.0;
             } else {
               ChartModel.chartAxisModelLast.solarChartMinYValue = 0.0;
-              ChartModel.chartAxisModelLast.solarChartMaxYValue = 6.0;
+              ChartModel.chartAxisModelLast.solarChartMaxYValue = 4.0;
             }
             for (var singleSolarData in chartModel.chartData) {
               chartFlSpotList.add(FlSpot(

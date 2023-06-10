@@ -142,7 +142,7 @@ class _HomePageState extends State<HomePage>
       appBar: AppBar(
         backgroundColor: Colors.blue.shade700,
         title: const Text(
-          "Badania Panelu Fotowoltaicznego",
+          "Badania Paneli Fotowoltaicznych",
           style: TextStyle(fontSize: 18),
         ),
       ),
